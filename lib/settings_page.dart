@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:myapp/loading_page.dart';
 import 'package:myapp/main.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +8,6 @@ import 'package:csv/csv.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/services.dart';
 import 'package:myapp/notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -90,6 +89,50 @@ class _SettingsPageState extends State<SettingsPage> {
     await file.writeAsString(csv);
 
     await Share.shareXFiles([XFile(path)], text: 'Work Log Data');
+  }
+
+  Future<void> _showResetConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reset Data?'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to reset all your work log data?'),
+                Text('This action cannot be undone.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Reset'),
+              onPressed: () {
+                _resetData();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetData() {
+    final workLog = Provider.of<WorkLog>(context, listen: false);
+    workLog.clearLog();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoadingPage()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -177,6 +220,12 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: const Text('Export your work log as a CSV file.'),
               trailing: const Icon(Icons.download),
               onTap: () => _exportData(context),
+            ),
+            ListTile(
+              title: const Text('Reset Data'),
+              subtitle: const Text('Deletes all your work log data.'),
+              trailing: const Icon(Icons.delete_forever),
+              onTap: _showResetConfirmationDialog,
             ),
             const Divider(),
             Text(
