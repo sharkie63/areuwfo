@@ -1,30 +1,65 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:myapp/main.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Cycle work status on tap', (WidgetTester tester) async {
+    // Setup the app with the necessary providers
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+          // Initialize WorkLog without loading from shared_preferences for a clean test
+          ChangeNotifierProvider(create: (context) => WorkLog()),
+        ],
+        child: const WorkTrackerApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Let the widget tree build
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Define a finder for tappable day cards
+    final tappableDayFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is DayCard && widget.onTap != null && !widget.isWeekend,
+      description: 'a tappable, non-weekend day card',
+    );
+
+    // Verify that we found at least one such day
+    expect(tappableDayFinder, findsWidgets);
+
+    // Get a finder that specifically targets the *first* tappable day
+    final firstTappableDay = tappableDayFinder.first;
+
+    // --- First Tap: None -> Office ---
+    await tester.tap(firstTappableDay);
+    await tester.pump(); // Rebuild the widget with the new state
+
+    // Find the DayCard again and verify its state
+    DayCard dayCard = tester.widget(firstTappableDay);
+    expect(dayCard.status, WorkStatus.office);
+
+    // --- Second Tap: Office -> Home ---
+    await tester.tap(firstTappableDay);
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    dayCard = tester.widget(firstTappableDay);
+    expect(dayCard.status, WorkStatus.home);
+
+    // --- Third Tap: Home -> Leave ---
+    await tester.tap(firstTappableDay);
+    await tester.pump();
+
+    dayCard = tester.widget(firstTappableDay);
+    expect(dayCard.status, WorkStatus.leave);
+
+    // --- Fourth Tap: Leave -> None ---
+    await tester.tap(firstTappableDay);
+    await tester.pump();
+
+    dayCard = tester.widget(firstTappableDay);
+    expect(dayCard.status, WorkStatus.none);
   });
 }
