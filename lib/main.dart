@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/loading_page.dart';
+import 'package:myapp/notifications.dart';
 import 'package:myapp/settings_page.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,10 @@ import 'dart:convert';
 import 'dart:math';
 
 // Main function
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
+
   runApp(
     MultiProvider(
       providers: [
@@ -140,13 +144,13 @@ class WorkTrackerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color primarySeedColor = Colors.deepPurple;
-    final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.oswald(
+    final TextTheme appTextTheme = const TextTheme(
+      displayLarge: TextStyle(
         fontSize: 57,
         fontWeight: FontWeight.bold,
       ),
-      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
-      bodyMedium: GoogleFonts.openSans(fontSize: 14),
+      titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+      bodyMedium: TextStyle(fontSize: 14),
     );
 
     final ThemeData lightTheme = ThemeData(
@@ -322,6 +326,7 @@ class CalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final workLog = Provider.of<WorkLog>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final firstDayOfMonth = DateTime(
       displayedMonth.year,
       displayedMonth.month,
@@ -367,6 +372,9 @@ class CalendarGrid extends StatelessWidget {
               isWeekend: isWeekend,
               onTap: () {
                 if (!isWeekend) {
+                  if (themeProvider.hapticFeedbackEnabled) {
+                    HapticFeedback.mediumImpact();
+                  }
                   final nextStatus = WorkStatus
                       .values[(status.index + 1) % WorkStatus.values.length];
                   workLog.updateStatus(date, nextStatus);

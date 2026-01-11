@@ -20,6 +20,10 @@
       # Runs when a workspace is first created with this `dev.nix` file
       onCreate = { };
       # To run something each time the workspace is (re)started, use the `onStart` hook
+      onStart = {
+        # Start the Android emulator
+        android-emulator = "/opt/android-sdk/emulator/emulator -avd default -no-audio -no-boot-anim -no-snapshot -no-window -gpu swiftshader_indirect -http-proxy 127.0.0.1:3000";
+      };
     };
     # Enable previews and customize configuration
     previews = {

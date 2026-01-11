@@ -1,10 +1,96 @@
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myapp/main.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:csv/csv.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:myapp/notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _remindersEnabled = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 17, minute: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderSettings();
+  }
+
+  void _loadReminderSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _remindersEnabled = prefs.getBool('remindersEnabled') ?? false;
+      final reminderHour = prefs.getInt('reminderHour') ?? 17;
+      final reminderMinute = prefs.getInt('reminderMinute') ?? 0;
+      _reminderTime = TimeOfDay(hour: reminderHour, minute: reminderMinute);
+    });
+  }
+
+  Future<void> _saveReminderSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('remindersEnabled', _remindersEnabled);
+    await prefs.setInt('reminderHour', _reminderTime.hour);
+    await prefs.setInt('reminderMinute', _reminderTime.minute);
+  }
+
+  void _onRemindersChanged(bool value) {
+    setState(() {
+      _remindersEnabled = value;
+    });
+    if (value) {
+      NotificationService().requestPermissions();
+      NotificationService().scheduleDailyReminder(_reminderTime);
+    } else {
+      NotificationService().cancelAllNotifications();
+    }
+    _saveReminderSettings();
+  }
+
+  Future<void> _selectReminderTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+    );
+    if (picked != null && picked != _reminderTime) {
+      setState(() {
+        _reminderTime = picked;
+      });
+      if (_remindersEnabled) {
+        NotificationService().scheduleDailyReminder(_reminderTime);
+      }
+      _saveReminderSettings();
+    }
+  }
+
+  Future<void> _exportData(BuildContext context) async {
+    final workLog = Provider.of<WorkLog>(context, listen: false);
+    final List<List<dynamic>> rows = [];
+    rows.add(['Date', 'Status']);
+    workLog.log.forEach((date, status) {
+      rows.add([date.toIso8601String(), status.toString().split('.').last]);
+    });
+
+    final String csv = const ListToCsvConverter().convert(rows);
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final String path = '${directory.path}/work_log.csv';
+    final File file = File(path);
+    await file.writeAsString(csv);
+
+    await Share.shareXFiles([XFile(path)], text: 'Work Log Data');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +144,55 @@ class SettingsPage extends StatelessWidget {
                       },
                     ),
                   ],
+                );
+              },
+            ),
+            const Divider(),
+            Text(
+              'Notifications',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Daily Reminders'),
+              subtitle: const Text('Remind you to log your work.'),
+              value: _remindersEnabled,
+              onChanged: _onRemindersChanged,
+            ),
+            ListTile(
+              title: const Text('Reminder Time'),
+              subtitle: Text(_reminderTime.format(context)),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => _selectReminderTime(context),
+              enabled: _remindersEnabled,
+            ),
+            const Divider(),
+            Text(
+              'Data',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              title: const Text('Export Data'),
+              subtitle: const Text('Export your work log as a CSV file.'),
+              trailing: const Icon(Icons.download),
+              onTap: () => _exportData(context),
+            ),
+            const Divider(),
+            Text(
+              'Preferences',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Consumer<ThemeProvider>(
+              builder: (context, themeProvider, child) {
+                return SwitchListTile(
+                  title: const Text('Haptic Feedback'),
+                  subtitle: const Text('Enable subtle vibrations on tap.'),
+                  value: themeProvider.hapticFeedbackEnabled,
+                  onChanged: (bool value) {
+                    themeProvider.setHapticFeedback(value);
+                  },
                 );
               },
             ),
