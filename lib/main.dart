@@ -10,21 +10,97 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // Import for Firebase Crashlytics
+import 'package:firebase_analytics/firebase_analytics.dart'; // Import for Firebase Analytics
+import 'dart:async'; // Import for runZonedGuarded
+import 'dart:ui'; // Add this import
 
 // Main function
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => WorkLog().._loadLog()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-      ],
-      child: const WorkTrackerApp(),
-    ),
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService()
+      .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
+  await NotificationService().requestPermissions();
+
+  runZonedGuarded(() async {
+    // Initialize Crashlytics to catch Flutter errors
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Initialize Crashlytics to catch platform errors
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => WorkLog().._loadLog()),
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ],
+        child: const WorkTrackerApp(),
+      ),
+    );
+  }, (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
+}
+
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  final actionId = notificationResponse.actionId;
+  if (actionId != null) {
+    WorkStatus? status;
+    String? toastMessage;
+
+    if (actionId == 'office') {
+      status = WorkStatus.office;
+      toastMessage = 'Working from Office today';
+    } else if (actionId == 'home') {
+      status = WorkStatus.home;
+      toastMessage = 'Working from Home today';
+    } else if (actionId == 'leave') {
+      status = WorkStatus.leave;
+      toastMessage = 'On leave today';
+    }
+
+    if (status != null) {
+      _updateStatusInBackground(status);
+      if (toastMessage != null) {
+        Fluttertoast.showToast(
+          msg: toastMessage,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+    }
+  }
+}
+
+Future<void> _updateStatusInBackground(WorkStatus status) async {
+  final prefs = await SharedPreferences.getInstance();
+  final today = DateUtils.dateOnly(DateTime.now());
+  final String? logString = prefs.getString('workLog');
+  Map<String, int> workLog = {};
+
+  if (logString != null) {
+    final Map<String, dynamic> decodedLog = json.decode(logString);
+    workLog = decodedLog.map((key, value) => MapEntry(key, value as int));
+  }
+
+  workLog[today.toIso8601String()] = status.index;
+  await prefs.setString('workLog', json.encode(workLog));
 }
 
 final _router = GoRouter(
@@ -35,6 +111,7 @@ final _router = GoRouter(
       builder: (context, state) => const SettingsPage(),
     ),
   ],
+  observers: [WorkTrackerApp.observer], // Moved here from MaterialApp.router
 );
 
 // Work Status Enum
@@ -135,20 +212,28 @@ class WorkLog with ChangeNotifier {
     final totalWorkingDays = totalWeekdays - leaveDays;
     return totalWorkingDays > 0 ? (officeDays / totalWorkingDays) * 100 : 0;
   }
+
+  void clearLog() {
+    _log.clear();
+    _saveLog();
+    notifyListeners();
+  }
 }
 
 // Main App Widget
 class WorkTrackerApp extends StatelessWidget {
   const WorkTrackerApp({super.key});
 
+  // Initialize Firebase Analytics
+  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  static final FirebaseAnalyticsObserver observer =
+      FirebaseAnalyticsObserver(analytics: analytics);
+
   @override
   Widget build(BuildContext context) {
     const Color primarySeedColor = Colors.deepPurple;
-    final TextTheme appTextTheme = const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 57,
-        fontWeight: FontWeight.bold,
-      ),
+    const TextTheme appTextTheme = TextTheme(
+      displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.bold),
       titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: TextStyle(fontSize: 14),
     );
@@ -174,11 +259,12 @@ class WorkTrackerApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp.router(
-          title: 'Work Tracker',
+          title: 'AreUWFO',
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
           routerConfig: _router,
+          // Removed navigatorObservers from here
         );
       },
     );
@@ -206,13 +292,39 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   late DateTime _displayedMonth;
+  late AnimationController _swipeHintController;
+  late Animation<double> _swipeHintOpacityAnimation;
 
   @override
   void initState() {
     super.initState();
     _displayedMonth = DateUtils.dateOnly(DateTime.now());
+
+    _swipeHintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _swipeHintOpacityAnimation = CurvedAnimation(
+      parent: _swipeHintController,
+      curve: Curves.easeInOut,
+    );
+
+    _triggerSwipeHint();
+  }
+
+  @override
+  void dispose() {
+    _swipeHintController.dispose();
+    super.dispose();
+  }
+
+  void _triggerSwipeHint() async {
+    if (_swipeHintController.isAnimating) return;
+    _swipeHintController.forward();
+    await Future.delayed(const Duration(milliseconds: 1000));
+    _swipeHintController.reverse();
   }
 
   void _changeMonth(int monthIncrement) {
@@ -223,6 +335,7 @@ class _MyHomePageState extends State<MyHomePage> {
         1,
       );
     });
+    _triggerSwipeHint(); // Call _triggerSwipeHint() here
   }
 
   void _setMonth(DateTime month) {
@@ -261,7 +374,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate navigation limits
+    // Calculate navigation limits (for arrow onPressed, though arrows are now hints)
     final now = DateTime.now();
     final sixMonthsAgo = DateTime(now.year, now.month - 6, 1);
     final sixMonthsHence = DateTime(now.year, now.month + 6, 1);
@@ -271,23 +384,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios),
-              onPressed: canGoBack ? () => _changeMonth(-1) : null,
-            ),
-            Text(
-              DateFormat.yMMMM().format(_displayedMonth),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward_ios),
-              onPressed: canGoForward ? () => _changeMonth(1) : null,
-            ),
-          ],
+        title: Text(
+          DateFormat.yMMMM().format(_displayedMonth),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         actions: [
           IconButton(
@@ -302,88 +401,212 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            CalendarGrid(displayedMonth: _displayedMonth),
-            const SizedBox(height: 24),
-            AttendanceTracker(displayedMonth: _displayedMonth),
-            const SizedBox(height: 16),
-            MonthlyAttendanceIndicator(onMonthSelected: _setMonth),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 380, // Fixed height for the calendar
+                  width: double.infinity, // Full width
+                  child: CalendarGrid(
+                    displayedMonth: _displayedMonth,
+                    onMonthSwiped: _changeMonth, // Corrected parameter name
+                  ),
+                ),
+                const SizedBox(height: 24),
+                AttendanceTracker(displayedMonth: _displayedMonth),
+                const SizedBox(height: 16),
+                MonthlyAttendanceIndicator(onMonthSelected: _setMonth),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 0,
+            top: MediaQuery.of(context).size.height * 0.25,
+            bottom: MediaQuery.of(context).size.height * 0.25,
+            child: FadeTransition(
+              opacity: _swipeHintOpacityAnimation,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios, size: 30),
+                onPressed: canGoBack ? () => _changeMonth(-1) : null,
+                color: Theme.of(context).colorScheme.onSurface,
+                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            top: MediaQuery.of(context).size.height * 0.25,
+            bottom: MediaQuery.of(context).size.height * 0.25,
+            child: FadeTransition(
+              opacity: _swipeHintOpacityAnimation,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_forward_ios, size: 30),
+                onPressed: canGoForward ? () => _changeMonth(1) : null,
+                color: Theme.of(context).colorScheme.onSurface,
+                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 // Calendar Grid Widget
-class CalendarGrid extends StatelessWidget {
+class CalendarGrid extends StatefulWidget {
   final DateTime displayedMonth;
-  const CalendarGrid({super.key, required this.displayedMonth});
+  final Function(int) onMonthSwiped;
+
+  const CalendarGrid({
+    super.key,
+    required this.displayedMonth,
+    required this.onMonthSwiped,
+  });
+
+  @override
+  State<CalendarGrid> createState() => _CalendarGridState();
+}
+
+class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _offsetAnimation;
+  late DateTime _previousDisplayedMonth; // To track direction of month change
+
+  @override
+  void initState() {
+    super.initState();
+    _previousDisplayedMonth = widget.displayedMonth;
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _offsetAnimation = Tween<Offset>(begin: Offset.zero, end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant CalendarGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.displayedMonth != oldWidget.displayedMonth) {
+      // Determine the direction of the month change
+      final int monthDifference = widget.displayedMonth.month - oldWidget.displayedMonth.month +
+          (widget.displayedMonth.year - oldWidget.displayedMonth.year) * 12;
+
+      // Reset animation controller
+      _animationController.reset();
+
+      // Set up the new tween based on swipe direction
+      if (monthDifference > 0) { // Swiped left, new month slides in from right
+        _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+        );
+      } else { // Swiped right, new month slides in from left
+        _offsetAnimation = Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+        );
+      }
+      _animationController.forward();
+      _previousDisplayedMonth = widget.displayedMonth; // Update previous month
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final workLog = Provider.of<WorkLog>(context);
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final firstDayOfMonth = DateTime(
-      displayedMonth.year,
-      displayedMonth.month,
+      widget.displayedMonth.year,
+      widget.displayedMonth.month,
       1,
     );
     final daysInMonth = DateUtils.getDaysInMonth(
-      displayedMonth.year,
-      displayedMonth.month,
+      widget.displayedMonth.year,
+      widget.displayedMonth.month,
     );
     final firstWeekday = firstDayOfMonth.weekday;
 
-    return Column(
-      children: [
-        const WeekdayHeader(),
-        const SizedBox(height: 8),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: daysInMonth + firstWeekday - 1,
-          itemBuilder: (context, index) {
-            if (index < firstWeekday - 1) {
-              return const SizedBox.shrink(); // Empty space before the 1st day
-            }
-            final dayNumber = index - (firstWeekday - 1) + 1;
-            final date = DateTime(
-              displayedMonth.year,
-              displayedMonth.month,
-              dayNumber,
-            );
-            final status = workLog.getStatus(date);
-            final isWeekend =
-                date.weekday == DateTime.saturday ||
-                date.weekday == DateTime.sunday;
-
-            return DayCard(
-              date: date,
-              status: status,
-              isWeekend: isWeekend,
-              onTap: () {
-                if (!isWeekend) {
-                  if (themeProvider.hapticFeedbackEnabled) {
-                    HapticFeedback.mediumImpact();
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          // Swiped right (positive velocity) -> go to previous month
+          widget.onMonthSwiped(-1);
+        } else if (details.primaryVelocity! < 0) {
+          // Swiped left (negative velocity) -> go to next month
+          widget.onMonthSwiped(1);
+        }
+      },
+      child: AnimatedBuilder(
+        animation: _offsetAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: _offsetAnimation.value * MediaQuery.of(context).size.width,
+            child: child,
+          );
+        },
+        child: Column(
+          children: [
+            const WeekdayHeader(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: daysInMonth + firstWeekday - 1,
+                itemBuilder: (context, index) {
+                  if (index < firstWeekday - 1) {
+                    return const SizedBox.shrink(); // Empty space before the 1st day
                   }
-                  final nextStatus = WorkStatus
-                      .values[(status.index + 1) % WorkStatus.values.length];
-                  workLog.updateStatus(date, nextStatus);
-                }
-              },
-            );
-          },
+                  final dayNumber = index - (firstWeekday - 1) + 1;
+                  final date = DateTime(
+                    widget.displayedMonth.year,
+                    widget.displayedMonth.month,
+                    dayNumber,
+                  );
+                  final status = workLog.getStatus(date);
+                  final isWeekend =
+                      date.weekday == DateTime.saturday ||
+                      date.weekday == DateTime.sunday;
+                  final isCurrentDay =
+                      DateUtils.dateOnly(date) == DateUtils.dateOnly(DateTime.now());
+
+                  return DayCard(
+                    date: date,
+                    status: status,
+                    isWeekend: isWeekend,
+                    isCurrentDay: isCurrentDay,
+                    onTap: () {
+                      if (!isWeekend) {
+                        if (themeProvider.hapticFeedbackEnabled) {
+                          HapticFeedback.mediumImpact();
+                        }
+                        final nextStatus = WorkStatus
+                            .values[(status.index + 1) % WorkStatus.values.length];
+                        workLog.updateStatus(date, nextStatus);
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -401,7 +624,7 @@ class WeekdayHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: orderedWeekdays.map((day) {
-        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold));
+        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold)); // Reverted text style
       }).toList(),
     );
   }
@@ -412,6 +635,7 @@ class DayCard extends StatelessWidget {
   final DateTime date;
   final WorkStatus status;
   final bool isWeekend;
+  final bool isCurrentDay; // Added isCurrentDay parameter
   final VoidCallback? onTap;
 
   const DayCard({
@@ -419,6 +643,7 @@ class DayCard extends StatelessWidget {
     required this.date,
     required this.status,
     required this.isWeekend,
+    required this.isCurrentDay, // Required isCurrentDay parameter
     this.onTap,
   });
 
@@ -445,18 +670,24 @@ class DayCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isWeekend ? Colors.grey.shade400 : Colors.transparent,
-          ),
+          color: cardColor, // Reverted color logic
+          borderRadius:
+              isCurrentDay ? BorderRadius.circular(12) : BorderRadius.circular(8),
+          border: isCurrentDay
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary, width: 2.0)
+              : Border.all(
+                  color: isWeekend ? Colors.grey.shade400 : Colors.transparent,
+                ),
         ),
         child: Center(
           child: Text(
             date.day.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: status != WorkStatus.none ? Colors.white : null,
+              color: status != WorkStatus.none
+                  ? Colors.white
+                  : null, // Reverted text color logic
             ),
           ),
         ),

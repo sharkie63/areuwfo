@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:myapp/loading_page.dart';
 import 'package:myapp/main.dart';
@@ -21,11 +20,24 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _remindersEnabled = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 17, minute: 0);
+  bool _notificationsAllowed = false;
 
   @override
   void initState() {
     super.initState();
     _loadReminderSettings();
+    _checkNotificationPermissions();
+  }
+
+  void _checkNotificationPermissions() async {
+    final isAllowed = await NotificationService().isNotificationAllowed();
+    setState(() {
+      _notificationsAllowed = isAllowed;
+      if (!isAllowed) {
+        _remindersEnabled = false;
+        _saveReminderSettings();
+      }
+    });
   }
 
   void _loadReminderSettings() async {
@@ -45,14 +57,25 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs.setInt('reminderMinute', _reminderTime.minute);
   }
 
-  void _onRemindersChanged(bool value) {
-    setState(() {
-      _remindersEnabled = value;
-    });
+  void _onRemindersChanged(bool value) async {
     if (value) {
-      NotificationService().requestPermissions();
-      NotificationService().scheduleDailyReminder(_reminderTime);
+      final isAllowed = await NotificationService().requestPermissions();
+      if (isAllowed) {
+        setState(() {
+          _remindersEnabled = true;
+          _notificationsAllowed = true;
+        });
+        NotificationService().scheduleDailyReminder(_reminderTime);
+      } else {
+        setState(() {
+          _remindersEnabled = false;
+          _notificationsAllowed = false;
+        });
+      }
     } else {
+      setState(() {
+        _remindersEnabled = false;
+      });
       NotificationService().cancelAllNotifications();
     }
     _saveReminderSettings();
@@ -144,108 +167,120 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Theme',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return Column(
-                  children: [
-                    RadioListTile<ThemeMode>(
-                      title: const Text('Light'),
-                      value: ThemeMode.light,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                    ),
-                    RadioListTile<ThemeMode>(
-                      title: const Text('Dark'),
-                      value: ThemeMode.dark,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                    ),
-                    RadioListTile<ThemeMode>(
-                      title: const Text('System'),
-                      value: ThemeMode.system,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (ThemeMode? value) {
-                        if (value != null) {
-                          themeProvider.setThemeMode(value);
-                        }
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
-            const Divider(),
-            Text(
-              'Notifications',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Daily Reminders'),
-              subtitle: const Text('Remind you to log your work.'),
-              value: _remindersEnabled,
-              onChanged: _onRemindersChanged,
-            ),
-            ListTile(
-              title: const Text('Reminder Time'),
-              subtitle: Text(_reminderTime.format(context)),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => _selectReminderTime(context),
-              enabled: _remindersEnabled,
-            ),
-            const Divider(),
-            Text(
-              'Data',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Export Data'),
-              subtitle: const Text('Export your work log as a CSV file.'),
-              trailing: const Icon(Icons.download),
-              onTap: () => _exportData(context),
-            ),
-            ListTile(
-              title: const Text('Reset Data'),
-              subtitle: const Text('Deletes all your work log data.'),
-              trailing: const Icon(Icons.delete_forever),
-              onTap: _showResetConfirmationDialog,
-            ),
-            const Divider(),
-            Text(
-              'Preferences',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return SwitchListTile(
-                  title: const Text('Haptic Feedback'),
-                  subtitle: const Text('Enable subtle vibrations on tap.'),
-                  value: themeProvider.hapticFeedbackEnabled,
-                  onChanged: (bool value) {
-                    themeProvider.setHapticFeedback(value);
-                  },
-                );
-              },
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Theme',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, child) {
+                  return Column(
+                    children: [
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Light'),
+                        value: ThemeMode.light,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (ThemeMode? value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
+                      ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('Dark'),
+                        value: ThemeMode.dark,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (ThemeMode? value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
+                      ),
+                      RadioListTile<ThemeMode>(
+                        title: const Text('System'),
+                        value: ThemeMode.system,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (ThemeMode? value) {
+                          if (value != null) {
+                            themeProvider.setThemeMode(value);
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const Divider(),
+              Text(
+                'Notifications',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('Daily Reminders'),
+                subtitle: const Text('Remind you to log your work.'),
+                value: _remindersEnabled,
+                onChanged: _onRemindersChanged,
+              ),
+              ListTile(
+                title: const Text('Reminder Time'),
+                subtitle: Text(_reminderTime.format(context)),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () => _selectReminderTime(context),
+                enabled: _remindersEnabled && _notificationsAllowed,
+              ),
+              ListTile(
+                title: const Text('Test Notification'),
+                subtitle: const Text('Show a sample reminder notification.'),
+                trailing: const Icon(Icons.notification_important),
+                onTap: () async {
+                  await NotificationService().requestPermissions();
+                  NotificationService().showTestNotification();
+                },
+                enabled: _notificationsAllowed,
+              ),
+              const Divider(),
+              Text(
+                'Data',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: const Text('Export Data'),
+                subtitle: const Text('Export your work log as a CSV file.'),
+                trailing: const Icon(Icons.download),
+                onTap: () => _exportData(context),
+              ),
+              ListTile(
+                title: const Text('Reset Data'),
+                subtitle: const Text('Deletes all your work log data.'),
+                trailing: const Icon(Icons.delete_forever),
+                onTap: _showResetConfirmationDialog,
+              ),
+              const Divider(),
+              Text(
+                'Preferences',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, child) {
+                  return SwitchListTile(
+                    title: const Text('Haptic Feedback'),
+                    subtitle: const Text('Enable subtle vibrations on tap.'),
+                    value: themeProvider.hapticFeedbackEnabled,
+                    onChanged: (bool value) {
+                      themeProvider.setHapticFeedback(value);
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

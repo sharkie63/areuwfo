@@ -1,35 +1,30 @@
-# App Blueprint
+# Project Blueprint
 
 ## Overview
 
-A Flutter application that helps users track their work status (in-office or remote) for each day. The app provides a calendar view to visualize the work log and allows users to manage their preferences.
+This document outlines the style, design, and features of the AreUWFO work tracker application.
 
-## Style and Design
+## Current State
 
-*   **Theme:** Modern, clean, and visually balanced with Material Design 3 components.
-*   **Color Palette:** A vibrant and energetic look and feel with a wide range of color concentrations and hues.
-*   **Typography:** Expressive and relevant typography with an emphasis on font sizes to ease understanding.
-*   **Layout:** Mobile-responsive design that adapts to different screen sizes.
-*   **Interactivity:** Modern, interactive iconography and UI components with elegant use of color and shadow to create a "glow" effect.
+### Style and Design
 
-## Features
+*   **Theme:** Material 3 with a deep purple seed color.
+*   **Color Scheme:** Light and dark themes are supported.
+*   **Typography:** Default TextTheme with placeholder styles.
 
-*   **Work Log:**
-    *   Users can mark each day as "in-office," "remote," or "off."
-    *   A calendar view displays the work status for each day.
-*   **Settings:**
-    *   **Theme:** Users can switch between light, dark, and system theme.
-    *   **Notifications:** Users can enable or disable daily reminders to log their work.
-    *   **Data:**
-        *   Users can export their work log as a CSV file.
-        *   Users can reset all their application data.
-    *   **Preferences:** Users can enable or disable haptic feedback.
+### Features
 
-## Current Task: Add Data Reset Functionality
+*   **Work Log:** Users can log their work status (office, home, leave) for each day.
+*   **Calendar View:** A grid-based calendar displays the work log for the selected month.
+*   **Attendance Tracking:** A progress bar shows the in-office attendance percentage for the current month.
+*   **Monthly Indicators:** A visual indicator shows the attendance percentage for the last six months.
+*   **Settings:** A settings page is available but not yet implemented.
 
-*   **User Story:** As a user, I want to be able to reset all my data in the application so that I can start over from scratch.
-*   **Plan:**
-    1.  Add a "Reset Data" button to the settings page.
-    2.  Implement a confirmation dialog to prevent accidental data deletion.
-    3.  Upon confirmation, clear all the stored data.
-    4.  Restart the application or navigate to the loading screen to reload the initial state.
+## Current Task: Add Firebase Integration
+
+### Plan
+
+1.  **Add Firebase Dependencies:** Add `firebase_core` to `pubspec.yaml`.
+2.  **Initialize Firebase:** Add Firebase initialization code to `lib/main.dart`.
+3.  **Configure Firebase:** Run `flutterfire configure` to generate `firebase_options.dart`.
+4.  **Create Blueprint:** Create a `blueprint.md` file to document the project.
