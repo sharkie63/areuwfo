@@ -9,7 +9,6 @@ import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -403,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 icon: const Icon(Icons.arrow_back_ios, size: 30),
                 onPressed: canGoBack ? () => _changeMonth(-1) : null,
                 color: Theme.of(context).colorScheme.onSurface,
-                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                disabledColor: Theme.of(context).colorScheme.onSurface.withAlpha(77),
               ),
             ),
           ),
@@ -417,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 icon: const Icon(Icons.arrow_forward_ios, size: 30),
                 onPressed: canGoForward ? () => _changeMonth(1) : null,
                 color: Theme.of(context).colorScheme.onSurface,
-                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                disabledColor: Theme.of(context).colorScheme.onSurface.withAlpha(77),
               ),
             ),
           ),
@@ -444,12 +443,10 @@ class CalendarGrid extends StatefulWidget {
 class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Offset> _offsetAnimation;
-  late DateTime _previousDisplayedMonth;
 
   @override
   void initState() {
     super.initState();
-    _previousDisplayedMonth = widget.displayedMonth;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -478,7 +475,6 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
         );
       }
       _animationController.forward();
-      _previousDisplayedMonth = widget.displayedMonth;
     }
   }
 
@@ -737,11 +733,15 @@ class MonthlyAttendanceIndicator extends StatelessWidget {
             DateFormat.MMM().format(month),
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
-          if (isCurrent)
+          if (_isSameMonth(month, DateTime.now()))
             const Text('(Current Month)', style: TextStyle(fontSize: 10)),
         ],
       ),
     );
+  }
+
+  bool _isSameMonth(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month;
   }
 }
 
