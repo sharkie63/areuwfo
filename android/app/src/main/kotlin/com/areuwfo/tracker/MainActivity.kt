@@ -1,4 +1,4 @@
-package com.example.myapp
+package com.areuwfo.tracker
 
 import io.flutter.embedding.android.FlutterActivity
 
