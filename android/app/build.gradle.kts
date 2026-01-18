@@ -58,6 +58,16 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+
+    // Add this block for versioned APK name
+    applicationVariants.all {
+        if (buildType.name == "release") {
+            outputs.forEach { output ->
+                val newApkName = "app-release-v${versionName}-${versionCode}.apk"
+                (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = newApkName
+            }
+        }
+    }
 }
 
 flutter {

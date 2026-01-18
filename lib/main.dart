@@ -14,12 +14,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // Import for Firebase Crashlytics
-import 'package:firebase_analytics/firebase_analytics.dart'; // Import for Firebase Analytics
-import 'dart:async'; // Import for runZonedGuarded
-import 'dart:ui'; // Add this import
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'dart:async';
+import 'dart:ui';
 
-// Main function
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -29,11 +28,13 @@ void main() async {
       .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
   await NotificationService().requestPermissions();
 
+  // Create the WorkLog instance and load the data.
+  final workLog = WorkLog();
+  await workLog.loadLog();
+
   runZonedGuarded(() async {
-    // Initialize Crashlytics to catch Flutter errors
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
-    // Initialize Crashlytics to catch platform errors
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
@@ -42,7 +43,7 @@ void main() async {
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => WorkLog().._loadLog()),
+          ChangeNotifierProvider.value(value: workLog),
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ],
         child: const WorkTrackerApp(),
@@ -111,13 +112,11 @@ final _router = GoRouter(
       builder: (context, state) => const SettingsPage(),
     ),
   ],
-  observers: [WorkTrackerApp.observer], // Moved here from MaterialApp.router
+  observers: [WorkTrackerApp.observer],
 );
 
-// Work Status Enum
 enum WorkStatus { none, office, home, leave }
 
-// WorkLog Provider
 class WorkLog with ChangeNotifier {
   final Map<DateTime, WorkStatus> _log = {};
   bool _isLoading = true;
@@ -143,53 +142,30 @@ class WorkLog with ChangeNotifier {
     await prefs.setString('workLog', json.encode(encodedLog));
   }
 
-  Future<void> _loadLog() async {
-    // Simulate a network delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    final prefs = await SharedPreferences.getInstance();
-    final String? logString = prefs.getString('workLog');
-    if (logString != null) {
-      final Map<String, dynamic> decodedLog = json.decode(logString);
-      _log.clear();
-      decodedLog.forEach((key, value) {
-        _log[DateTime.parse(key)] = WorkStatus.values[value];
-      });
-    } else {
-      // Generate dummy data if no log exists
-      _generateDummyData();
-    }
-    _isLoading = false;
+  Future<void> loadLog() async {
+    _isLoading = true;
     notifyListeners();
-  }
 
-  void _generateDummyData() {
-    final random = Random();
-    final today = DateUtils.dateOnly(DateTime.now());
-
-    for (int monthIndex = 0; monthIndex <= 6; monthIndex++) {
-      final month = DateTime(today.year, today.month - monthIndex, 1);
-      final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
-
-      for (int dayIndex = 1; dayIndex <= daysInMonth; dayIndex++) {
-        final day = DateTime(month.year, month.month, dayIndex);
-
-        // Skip future dates and weekends
-        if (day.isAfter(today) ||
-            day.weekday == DateTime.saturday ||
-            day.weekday == DateTime.sunday) {
-          continue;
-        }
-
-        // Generate a random status (excluding 'none')
-        final status = WorkStatus.values[random.nextInt(3) + 1];
-        _log[day] = status;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? logString = prefs.getString('workLog');
+      if (logString != null) {
+        final Map<String, dynamic> decodedLog = json.decode(logString);
+        _log.clear();
+        decodedLog.forEach((key, value) {
+          _log[DateTime.parse(key)] = WorkStatus.values[value];
+        });
       }
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack);
+      _log.clear();
+      await _saveLog();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _saveLog();
   }
 
-  // Calculate the in-office attendance percentage for a given month
   double officeAttendancePercentage(DateTime month) {
     final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
     int officeDays = 0;
@@ -220,11 +196,9 @@ class WorkLog with ChangeNotifier {
   }
 }
 
-// Main App Widget
 class WorkTrackerApp extends StatelessWidget {
   const WorkTrackerApp({super.key});
 
-  // Initialize Firebase Analytics
   static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   static final FirebaseAnalyticsObserver observer =
       FirebaseAnalyticsObserver(analytics: analytics);
@@ -264,7 +238,6 @@ class WorkTrackerApp extends StatelessWidget {
           darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
           routerConfig: _router,
-          // Removed navigatorObservers from here
         );
       },
     );
@@ -284,7 +257,6 @@ class HomePageWrapper extends StatelessWidget {
   }
 }
 
-// Home Page Widget
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -335,7 +307,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         1,
       );
     });
-    _triggerSwipeHint(); // Call _triggerSwipeHint() here
+    _triggerSwipeHint();
   }
 
   void _setMonth(DateTime month) {
@@ -374,7 +346,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    // Calculate navigation limits (for arrow onPressed, though arrows are now hints)
     final now = DateTime.now();
     final sixMonthsAgo = DateTime(now.year, now.month - 6, 1);
     final sixMonthsHence = DateTime(now.year, now.month + 6, 1);
@@ -408,11 +379,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             child: Column(
               children: [
                 SizedBox(
-                  height: 380, // Fixed height for the calendar
-                  width: double.infinity, // Full width
+                  height: 380,
+                  width: double.infinity,
                   child: CalendarGrid(
                     displayedMonth: _displayedMonth,
-                    onMonthSwiped: _changeMonth, // Corrected parameter name
+                    onMonthSwiped: _changeMonth,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -456,7 +427,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 }
 
-// Calendar Grid Widget
 class CalendarGrid extends StatefulWidget {
   final DateTime displayedMonth;
   final Function(int) onMonthSwiped;
@@ -474,7 +444,7 @@ class CalendarGrid extends StatefulWidget {
 class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Offset> _offsetAnimation;
-  late DateTime _previousDisplayedMonth; // To track direction of month change
+  late DateTime _previousDisplayedMonth;
 
   @override
   void initState() {
@@ -493,25 +463,22 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
   void didUpdateWidget(covariant CalendarGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.displayedMonth != oldWidget.displayedMonth) {
-      // Determine the direction of the month change
       final int monthDifference = widget.displayedMonth.month - oldWidget.displayedMonth.month +
           (widget.displayedMonth.year - oldWidget.displayedMonth.year) * 12;
 
-      // Reset animation controller
       _animationController.reset();
 
-      // Set up the new tween based on swipe direction
-      if (monthDifference > 0) { // Swiped left, new month slides in from right
+      if (monthDifference > 0) {
         _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
         );
-      } else { // Swiped right, new month slides in from left
+      } else {
         _offsetAnimation = Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
         );
       }
       _animationController.forward();
-      _previousDisplayedMonth = widget.displayedMonth; // Update previous month
+      _previousDisplayedMonth = widget.displayedMonth;
     }
   }
 
@@ -539,10 +506,8 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! > 0) {
-          // Swiped right (positive velocity) -> go to previous month
           widget.onMonthSwiped(-1);
         } else if (details.primaryVelocity! < 0) {
-          // Swiped left (negative velocity) -> go to next month
           widget.onMonthSwiped(1);
         }
       },
@@ -570,7 +535,7 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
                 itemCount: daysInMonth + firstWeekday - 1,
                 itemBuilder: (context, index) {
                   if (index < firstWeekday - 1) {
-                    return const SizedBox.shrink(); // Empty space before the 1st day
+                    return const SizedBox.shrink();
                   }
                   final dayNumber = index - (firstWeekday - 1) + 1;
                   final date = DateTime(
@@ -611,31 +576,28 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
   }
 }
 
-// Weekday Header Widget
 class WeekdayHeader extends StatelessWidget {
   const WeekdayHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     final shortWeekdays = DateFormat.E().dateSymbols.SHORTWEEKDAYS;
-    // Reorder to start with Monday
     final orderedWeekdays = [...shortWeekdays.sublist(1), shortWeekdays[0]];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: orderedWeekdays.map((day) {
-        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold)); // Reverted text style
+        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold));
       }).toList(),
     );
   }
 }
 
-// Day Card Widget
 class DayCard extends StatelessWidget {
   final DateTime date;
   final WorkStatus status;
   final bool isWeekend;
-  final bool isCurrentDay; // Added isCurrentDay parameter
+  final bool isCurrentDay;
   final VoidCallback? onTap;
 
   const DayCard({
@@ -643,7 +605,7 @@ class DayCard extends StatelessWidget {
     required this.date,
     required this.status,
     required this.isWeekend,
-    required this.isCurrentDay, // Required isCurrentDay parameter
+    required this.isCurrentDay,
     this.onTap,
   });
 
@@ -670,7 +632,7 @@ class DayCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: cardColor, // Reverted color logic
+          color: cardColor,
           borderRadius:
               isCurrentDay ? BorderRadius.circular(12) : BorderRadius.circular(8),
           border: isCurrentDay
@@ -687,7 +649,7 @@ class DayCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: status != WorkStatus.none
                   ? Colors.white
-                  : null, // Reverted text color logic
+                  : null,
             ),
           ),
         ),
@@ -696,7 +658,6 @@ class DayCard extends StatelessWidget {
   }
 }
 
-// Attendance Tracker Widget
 class AttendanceTracker extends StatelessWidget {
   final DateTime displayedMonth;
   const AttendanceTracker({super.key, required this.displayedMonth});
@@ -726,7 +687,6 @@ class AttendanceTracker extends StatelessWidget {
   }
 }
 
-// Monthly Attendance Indicator Widget
 class MonthlyAttendanceIndicator extends StatelessWidget {
   final Function(DateTime) onMonthSelected;
   const MonthlyAttendanceIndicator({super.key, required this.onMonthSelected});
@@ -736,7 +696,6 @@ class MonthlyAttendanceIndicator extends StatelessWidget {
     final workLog = Provider.of<WorkLog>(context);
     final today = DateUtils.dateOnly(DateTime.now());
 
-    // Generate the list of the previous 6 months and reverse it for chronological order
     final pastMonths = List.generate(6, (index) {
       return DateTime(today.year, today.month - (index + 1), 1);
     }).reversed.toList();
@@ -786,7 +745,6 @@ class MonthlyAttendanceIndicator extends StatelessWidget {
   }
 }
 
-// Legend Item Widget
 class LegendItem extends StatelessWidget {
   final WorkStatus status;
   const LegendItem({super.key, required this.status});
