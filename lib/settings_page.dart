@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
+import 'package:myapp/notifications.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,25 +16,28 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _loadNotificationTime();
+    _loadSettings();
   }
 
-  void _loadNotificationTime() async {
+  void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final timeString = prefs.getString('notificationTime');
     if (timeString != null) {
       final timeParts = timeString.split(':');
-      setState(() {
-        _notificationTime = TimeOfDay(
-          hour: int.parse(timeParts[0]),
-          minute: int.parse(timeParts[1]),
-        );
-      });
+      _notificationTime = TimeOfDay(
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
+      );
     }
+    final notificationsEnabled = await NotificationService().areNotificationsEnabled();
+    setState(() {
+      _notificationsEnabled = notificationsEnabled;
+    });
   }
 
   Future<void> _selectNotificationTime(BuildContext context) async {
@@ -46,6 +51,9 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() {
         _notificationTime = picked;
       });
+      if (_notificationsEnabled) {
+        await NotificationService().scheduleDailyReminder(_notificationTime);
+      }
     }
   }
 
@@ -128,11 +136,43 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             secondary: const Icon(Icons.vibration),
           ),
+          SwitchListTile(
+            title: const Text('Enable Daily Reminders'),
+            value: _notificationsEnabled,
+            onChanged: (bool value) async {
+              final notificationService = NotificationService();
+              if (value) {
+                bool standardGranted = await notificationService.requestStandardPermissions();
+                if (standardGranted) {
+                  bool exactAlarmGranted = await notificationService.requestExactAlarmPermission();
+                  if (exactAlarmGranted) {
+                    await notificationService.scheduleDailyReminder(_notificationTime);
+                    setState(() {
+                      _notificationsEnabled = true;
+                    });
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'Notification permissions are required for reminders.')),
+                  );
+                }
+              } else {
+                await notificationService.cancelAllNotifications();
+                setState(() {
+                  _notificationsEnabled = false;
+                });
+              }
+            },
+            secondary: const Icon(Icons.notifications_active),
+          ),
           ListTile(
             title: const Text('Notification Time'),
             subtitle: Text(_notificationTime.format(context)),
             leading: const Icon(Icons.notifications),
             onTap: () => _selectNotificationTime(context),
+            enabled: _notificationsEnabled,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +26,6 @@ void main() async {
   );
   await NotificationService()
       .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
-  await NotificationService().requestPermissions();
 
   // Create the WorkLog instance and load the data.
   final workLog = WorkLog();
@@ -283,6 +283,15 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     );
 
     _triggerSwipeHint();
+    _requestPermissions();
+  }
+
+  void _requestPermissions() async {
+    final notificationService = NotificationService();
+    final isAllowed = await notificationService.areNotificationsEnabled();
+    if (!isAllowed) {
+      await notificationService.requestStandardPermissions();
+    }
   }
 
   @override

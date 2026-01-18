@@ -1,3 +1,4 @@
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -21,8 +22,9 @@ class NotificationService {
       {Function(NotificationResponse)?
           onDidReceiveBackgroundNotificationResponse}) async {
     tz.initializeTimeZones();
+    // Corrected the icon name to match AndroidManifest.xml
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
@@ -44,10 +46,46 @@ class NotificationService {
     );
   }
 
-  Future<bool> requestPermissions() async {
-    bool? result;
+  Future<bool> requestStandardPermissions() async {
     if (Platform.isIOS) {
-      result = await flutterLocalNotificationsPlugin
+      return await flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                  IOSFlutterLocalNotificationsPlugin>()
+              ?.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+          false;
+    } else if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      // Corrected the method name from requestPermission to requestNotificationsPermission
+      return await androidPlugin?.requestNotificationsPermission() ?? false;
+    }
+    return false;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestExactAlarmsPermission() ?? false;
+    }
+    return true; // No equivalent on iOS
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.areNotificationsEnabled() ?? false;
+    } else if (Platform.isIOS) {
+      // On iOS, we check by trying to request. If already granted, it returns true.
+      final result = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
@@ -55,31 +93,11 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-    } else if (Platform.isAndroid) {
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      final bool? notificationPermission = await androidPlugin?.requestNotificationsPermission();
-      final bool? exactAlarmPermission = await androidPlugin?.requestExactAlarmsPermission();
-      result = (notificationPermission ?? false) && (exactAlarmPermission ?? false);
+      return result ?? false;
     }
-    return result ?? false;
+    return false;
   }
 
-  Future<bool> isNotificationAllowed() async {
-    bool? isAllowed;
-    if (Platform.isAndroid) {
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      isAllowed = await androidPlugin?.areNotificationsEnabled();
-    } else if (Platform.isIOS) {
-      // On iOS, we can't check without asking.
-      // We will assume true and let the request flow in the settings page handle denial.
-      return true;
-    }
-    return isAllowed ?? false;
-  }
 
   Future<void> scheduleDailyReminder(TimeOfDay time) async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -100,7 +118,6 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // Removed uiLocalNotificationDateInterpretation as it's no longer a direct parameter or its usage has changed
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'Work_log_notification',
     );

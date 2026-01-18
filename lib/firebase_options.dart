@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyA_m_PMFd21jpmuFIYNfHsdLY11gBtDEvs',
-    appId: '1:15697676186:android:a9d018e500beb4fd9c1c23',
+    appId: '1:15697676186:android:af74dce0609cf7cc9c1c23',
     messagingSenderId: '15697676186',
     projectId: 'areuwfo-tracker',
     storageBucket: 'areuwfo-tracker.firebasestorage.app',
@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '15697676186',
     projectId: 'areuwfo-tracker',
     storageBucket: 'areuwfo-tracker.firebasestorage.app',
-    iosBundleId: 'com.example.myapp',
+    iosBundleId: 'com.areuwfo.tracker',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '15697676186',
     projectId: 'areuwfo-tracker',
     storageBucket: 'areuwfo-tracker.firebasestorage.app',
-    iosBundleId: 'com.example.myapp',
+    iosBundleId: 'com.areuwfo.tracker',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
