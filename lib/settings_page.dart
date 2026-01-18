@@ -35,6 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
     final notificationsEnabled = await NotificationService().areNotificationsEnabled();
+    if (!mounted) return;
     setState(() {
       _notificationsEnabled = notificationsEnabled;
     });
@@ -45,15 +46,18 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       initialTime: _notificationTime,
     );
-    if (picked != null && picked != _notificationTime) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('notificationTime', '${picked.hour}:${picked.minute}');
-      setState(() {
-        _notificationTime = picked;
-      });
-      if (_notificationsEnabled) {
-        await NotificationService().scheduleDailyReminder(_notificationTime);
-      }
+    if (picked == null || picked == _notificationTime) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('notificationTime', '${picked.hour}:${picked.minute}');
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificationTime = picked;
+    });
+    if (_notificationsEnabled) {
+      await NotificationService().scheduleDailyReminder(_notificationTime);
     }
   }
 
@@ -110,6 +114,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
               debugPrint("--- CSV EXPORT ---");
               debugPrint(csv);
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('CSV content printed to debug console.')),
               );
@@ -143,10 +148,13 @@ class _SettingsPageState extends State<SettingsPage> {
               final notificationService = NotificationService();
               if (value) {
                 bool standardGranted = await notificationService.requestStandardPermissions();
+                if (!mounted) return;
                 if (standardGranted) {
                   bool exactAlarmGranted = await notificationService.requestExactAlarmPermission();
+                  if (!mounted) return;
                   if (exactAlarmGranted) {
                     await notificationService.scheduleDailyReminder(_notificationTime);
+                    if (!mounted) return;
                     setState(() {
                       _notificationsEnabled = true;
                     });
@@ -160,6 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 }
               } else {
                 await notificationService.cancelAllNotifications();
+                if (!mounted) return;
                 setState(() {
                   _notificationsEnabled = false;
                 });
@@ -173,6 +182,14 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.notifications),
             onTap: () => _selectNotificationTime(context),
             enabled: _notificationsEnabled,
+          ),
+          ListTile(
+            title: const Text('Test Notification'),
+            subtitle: const Text('Send a notification immediately'),
+            leading: const Icon(Icons.notification_important),
+            onTap: () {
+              NotificationService().showTestNotification();
+            },
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

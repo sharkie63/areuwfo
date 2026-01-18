@@ -27,9 +27,8 @@ void main() async {
   await NotificationService()
       .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
 
-  // Create the WorkLog instance and load the data.
+  // Create the WorkLog instance but DO NOT load the data here.
   final workLog = WorkLog();
-  await workLog.loadLog();
 
   runZonedGuarded(() async {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -55,6 +54,7 @@ void main() async {
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
+  print('[BACKGROUND] Notification tapped with action: ${notificationResponse.actionId}');
   final actionId = notificationResponse.actionId;
   if (actionId != null) {
     WorkStatus? status;
@@ -72,6 +72,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
     }
 
     if (status != null) {
+      print('[BACKGROUND] Status determined: $status. Calling update function.');
       _updateStatusInBackground(status);
       if (toastMessage != null) {
         Fluttertoast.showToast(
@@ -89,18 +90,24 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 }
 
 Future<void> _updateStatusInBackground(WorkStatus status) async {
+  print('[BACKGROUND] _updateStatusInBackground started for status: $status');
   final prefs = await SharedPreferences.getInstance();
   final today = DateUtils.dateOnly(DateTime.now());
   final String? logString = prefs.getString('workLog');
   Map<String, int> workLog = {};
 
   if (logString != null) {
-    final Map<String, dynamic> decodedLog = json.decode(logString);
-    workLog = decodedLog.map((key, value) => MapEntry(key, value as int));
+    try {
+      final Map<String, dynamic> decodedLog = json.decode(logString);
+      workLog = decodedLog.map((key, value) => MapEntry(key, value as int));
+    } catch (e) {
+      print('[BACKGROUND] Error decoding work log: $e');
+    }
   }
 
   workLog[today.toIso8601String()] = status.index;
   await prefs.setString('workLog', json.encode(workLog));
+  print('[BACKGROUND] Successfully saved new status to SharedPreferences.');
 }
 
 final _router = GoRouter(
@@ -118,10 +125,8 @@ enum WorkStatus { none, office, home, leave }
 
 class WorkLog with ChangeNotifier {
   final Map<DateTime, WorkStatus> _log = {};
-  bool _isLoading = true;
 
   Map<DateTime, WorkStatus> get log => _log;
-  bool get isLoading => _isLoading;
 
   void updateStatus(DateTime day, WorkStatus status) {
     _log[day] = status;
@@ -142,9 +147,6 @@ class WorkLog with ChangeNotifier {
   }
 
   Future<void> loadLog() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? logString = prefs.getString('workLog');
@@ -160,7 +162,6 @@ class WorkLog with ChangeNotifier {
       _log.clear();
       await _saveLog();
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
@@ -243,14 +244,40 @@ class WorkTrackerApp extends StatelessWidget {
   }
 }
 
-class HomePageWrapper extends StatelessWidget {
+class HomePageWrapper extends StatefulWidget {
   const HomePageWrapper({super.key});
 
   @override
+  State<HomePageWrapper> createState() => _HomePageWrapperState();
+}
+
+class _HomePageWrapperState extends State<HomePageWrapper> {
+  late Future<void> _loadLogFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLogFuture = Provider.of<WorkLog>(context, listen: false).loadLog();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer<WorkLog>(
-      builder: (context, workLog, child) {
-        return workLog.isLoading ? const LoadingPage() : const MyHomePage();
+    return FutureBuilder(
+      future: _loadLogFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            // Optionally, return an error-specific widget
+            return const Scaffold(
+              body: Center(
+                child: Text('Failed to load data. Please restart the app.'),
+              ),
+            );
+          }
+          return const MyHomePage();
+        } else {
+          return const LoadingPage();
+        }
       },
     );
   }
@@ -263,7 +290,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late DateTime _displayedMonth;
   late AnimationController _swipeHintController;
   late Animation<double> _swipeHintOpacityAnimation;
@@ -271,6 +298,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _displayedMonth = DateUtils.dateOnly(DateTime.now());
 
     _swipeHintController = AnimationController(
@@ -286,6 +314,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _requestPermissions();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print("[LIFECYCLE] App resumed, reloading work log.");
+      Provider.of<WorkLog>(context, listen: false).loadLog();
+    }
+  }
+
   void _requestPermissions() async {
     final notificationService = NotificationService();
     final isAllowed = await notificationService.areNotificationsEnabled();
@@ -297,6 +333,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void dispose() {
     _swipeHintController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
