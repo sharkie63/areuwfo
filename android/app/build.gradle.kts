@@ -25,9 +25,7 @@ android {
     }
 
     signingConfigs {
-        // Gradle automatically creates a `debug` signingConfig for you.
-        // We will configure it to use the standard debug keystore.
-        getByName("debug") { // Access the default 'debug' signing config
+        getByName("debug") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storeFile = file(System.getProperty("user.home") + "/.android/debug.keystore")
@@ -55,16 +53,20 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
     }
 
-    // Add this block for versioned APK name
-    applicationVariants.all {
+    // Correcting the syntax to be idiomatic Kotlin Gradle DSL
+    applicationVariants.configureEach { 
         if (buildType.name == "release") {
             outputs.forEach { output ->
-                val newApkName = "app-release-v${versionName}-${versionCode}.apk"
-                (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = newApkName
+                (output as? com.android.build.gradle.api.ApkVariantOutput)?.let { apkOutput ->
+                    apkOutput.outputFileName = "app-release-v${versionName}-${versionCode}.apk"
+                }
             }
         }
     }
