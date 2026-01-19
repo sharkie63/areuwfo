@@ -11,13 +11,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:ui';
+import 'dart:developer' as developer;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,6 @@ void main() async {
   await NotificationService()
       .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
 
-  // Create the WorkLog instance but DO NOT load the data here.
   final workLog = WorkLog();
 
   runZonedGuarded(() async {
@@ -54,61 +53,56 @@ void main() async {
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
-  print('[BACKGROUND] Notification tapped with action: ${notificationResponse.actionId}');
+  developer.log(
+    'Notification tapped with action: ${notificationResponse.actionId}',
+    name: 'com.example.myapp.background',
+    level: 800
+  );
+
   final actionId = notificationResponse.actionId;
   if (actionId != null) {
     WorkStatus? status;
-    String? toastMessage;
 
     if (actionId == 'office') {
       status = WorkStatus.office;
-      toastMessage = 'Working from Office today';
     } else if (actionId == 'home') {
       status = WorkStatus.home;
-      toastMessage = 'Working from Home today';
     } else if (actionId == 'leave') {
       status = WorkStatus.leave;
-      toastMessage = 'On leave today';
     }
 
     if (status != null) {
-      print('[BACKGROUND] Status determined: $status. Calling update function.');
-      _updateStatusInBackground(status);
-      if (toastMessage != null) {
-        Fluttertoast.showToast(
-          msg: toastMessage,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.black,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-      }
+      developer.log(
+        'Status determined: $status. Calling update function.',
+        name: 'com.example.myapp.background',
+        level: 800
+      );
+      updateStatusInBackground(status);
     }
   }
 }
 
-Future<void> _updateStatusInBackground(WorkStatus status) async {
-  print('[BACKGROUND] _updateStatusInBackground started for status: $status');
-  final prefs = await SharedPreferences.getInstance();
-  final today = DateUtils.dateOnly(DateTime.now());
-  final String? logString = prefs.getString('workLog');
-  Map<String, int> workLog = {};
+// REFACTORED: This function is now public and uses the single source of truth.
+Future<void> updateStatusInBackground(WorkStatus status) async {
+  try {
+    developer.log('Background update started for status: $status', name: 'com.example.myapp.background');
+    
+    // 1. Read the log using the new centralized class
+    final workLog = await WorkLogStorage.readWorkLog();
+    final today = DateUtils.dateOnly(DateTime.now());
+    
+    // 2. Update the value
+    workLog[today] = status;
+    
+    // 3. Write the entire log back
+    await WorkLogStorage.writeWorkLog(workLog);
 
-  if (logString != null) {
-    try {
-      final Map<String, dynamic> decodedLog = json.decode(logString);
-      workLog = decodedLog.map((key, value) => MapEntry(key, value as int));
-    } catch (e) {
-      print('[BACKGROUND] Error decoding work log: $e');
-    }
+    developer.log('Background update successful.', name: 'com.example.myapp.background');
+  } catch (e, s) {
+    developer.log('FATAL ERROR in updateStatusInBackground: $e', name: 'com.example.myapp.background', error: e, stackTrace: s, level: 1200);
   }
-
-  workLog[today.toIso8601String()] = status.index;
-  await prefs.setString('workLog', json.encode(workLog));
-  print('[BACKGROUND] Successfully saved new status to SharedPreferences.');
 }
+
 
 final _router = GoRouter(
   routes: [
@@ -123,14 +117,47 @@ final _router = GoRouter(
 
 enum WorkStatus { none, office, home, leave }
 
+
+// ADDED: This new class centralizes all data access.
+class WorkLogStorage {
+  static const _workLogKey = 'workLog';
+
+  // Reads the entire log from disk and decodes it.
+  static Future<Map<DateTime, WorkStatus>> readWorkLog() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final logString = prefs.getString(_workLogKey);
+      if (logString == null) return {};
+
+      final Map<String, dynamic> decodedLog = json.decode(logString);
+      return decodedLog.map((key, value) {
+        return MapEntry(DateTime.parse(key), WorkStatus.values[value as int]);
+      });
+    } catch (e) {
+      developer.log('Error reading work log: $e', name: 'com.example.myapp.storage');
+      return {}; // Return empty map on error to prevent crash
+    }
+  }
+
+  // Encodes the entire log and writes it to disk.
+  static Future<void> writeWorkLog(Map<DateTime, WorkStatus> log) async {
+    final prefs = await SharedPreferences.getInstance();
+    final Map<String, int> encodedLog = log.map(
+      (key, value) => MapEntry(key.toIso8601String(), value.index),
+    );
+    await prefs.setString(_workLogKey, json.encode(encodedLog));
+  }
+}
+
+
 class WorkLog with ChangeNotifier {
   final Map<DateTime, WorkStatus> _log = {};
 
   Map<DateTime, WorkStatus> get log => _log;
 
-  void updateStatus(DateTime day, WorkStatus status) {
+  Future<void> updateStatus(DateTime day, WorkStatus status) async {
     _log[day] = status;
-    _saveLog();
+    await _saveLog();
     notifyListeners();
   }
 
@@ -139,29 +166,28 @@ class WorkLog with ChangeNotifier {
   }
 
   Future<void> _saveLog() async {
-    final prefs = await SharedPreferences.getInstance();
-    final Map<String, int> encodedLog = _log.map(
-      (key, value) => MapEntry(key.toIso8601String(), value.index),
-    );
-    await prefs.setString('workLog', json.encode(encodedLog));
+    await WorkLogStorage.writeWorkLog(_log);
   }
 
   Future<void> loadLog() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? logString = prefs.getString('workLog');
-      if (logString != null) {
-        final Map<String, dynamic> decodedLog = json.decode(logString);
-        _log.clear();
-        decodedLog.forEach((key, value) {
-          _log[DateTime.parse(key)] = WorkStatus.values[value];
-        });
-      }
+      developer.log("WorkLog: Starting to load log from disk.", name: "com.example.myapp.worklog");
+      _log.clear();
+      _log.addAll(await WorkLogStorage.readWorkLog());
+       developer.log("WorkLog: Successfully loaded and parsed log.", name: "com.example.myapp.worklog");
     } catch (e, stack) {
+       developer.log(
+        "WorkLog: Error loading log, clearing data.",
+        name: "com.example.myapp.worklog",
+        error: e,
+        stackTrace: stack,
+        level: 1000,
+      );
       FirebaseCrashlytics.instance.recordError(e, stack);
       _log.clear();
       await _saveLog();
     } finally {
+      developer.log("WorkLog: Notifying listeners of final state.", name: "com.example.myapp.worklog");
       notifyListeners();
     }
   }
@@ -317,7 +343,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print("[LIFECYCLE] App resumed, reloading work log.");
+      developer.log(
+        "[LIFECYCLE] App resumed, reloading work log.",
+        name: "com.example.myapp.lifecycle"
+      );
       Provider.of<WorkLog>(context, listen: false).loadLog();
     }
   }
@@ -597,14 +626,14 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
                     status: status,
                     isWeekend: isWeekend,
                     isCurrentDay: isCurrentDay,
-                    onTap: () {
+                    onTap: () async {
                       if (!isWeekend) {
                         if (themeProvider.hapticFeedbackEnabled) {
                           HapticFeedback.mediumImpact();
                         }
                         final nextStatus = WorkStatus
                             .values[(status.index + 1) % WorkStatus.values.length];
-                        workLog.updateStatus(date, nextStatus);
+                        await workLog.updateStatus(date, nextStatus);
                       }
                     },
                   );

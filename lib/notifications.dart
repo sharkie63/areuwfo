@@ -22,7 +22,6 @@ class NotificationService {
       {Function(NotificationResponse)?
           onDidReceiveBackgroundNotificationResponse}) async {
     tz.initializeTimeZones();
-    // Corrected the icon name to match AndroidManifest.xml
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
@@ -61,7 +60,6 @@ class NotificationService {
       final androidPlugin = flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
-      // Corrected the method name from requestPermission to requestNotificationsPermission
       return await androidPlugin?.requestNotificationsPermission() ?? false;
     }
     return false;
@@ -74,7 +72,7 @@ class NotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       return await androidPlugin?.requestExactAlarmsPermission() ?? false;
     }
-    return true; // No equivalent on iOS
+    return true; 
   }
 
   Future<bool> areNotificationsEnabled() async {
@@ -84,7 +82,6 @@ class NotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       return await androidPlugin?.areNotificationsEnabled() ?? false;
     } else if (Platform.isIOS) {
-      // On iOS, we check by trying to request. If already granted, it returns true.
       final result = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
@@ -98,6 +95,21 @@ class NotificationService {
     return false;
   }
 
+  NotificationDetails get _notificationDetails {
+     return const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder_channel',
+          'Daily Reminders',
+          channelDescription: 'Reminders to log your work status.',
+          actions: [
+            AndroidNotificationAction('office', 'Office', cancelNotification: true),
+            AndroidNotificationAction('home', 'Home', cancelNotification: true),
+            AndroidNotificationAction('leave', 'Leave', cancelNotification: true),
+          ],
+        ),
+      );
+  }
+
 
   Future<void> scheduleDailyReminder(TimeOfDay time) async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -105,18 +117,7 @@ class NotificationService {
       'Log Your Work Status',
       'Don\'t forget to update your work status for today. A quick tap is all it takes!',
       _nextInstanceOfTime(time),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder_channel',
-          'Daily Reminders',
-          channelDescription: 'Reminders to log your work status.',
-          actions: [
-            AndroidNotificationAction('office', 'Office'),
-            AndroidNotificationAction('home', 'Home'),
-            AndroidNotificationAction('leave', 'Leave'),
-          ],
-        ),
-      ),
+      _notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'Work_log_notification',
@@ -124,26 +125,11 @@ class NotificationService {
   }
 
   Future<void> showTestNotification() async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'test_channel',
-      'Test Notifications',
-      channelDescription: 'Channel for testing notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      actions: [
-        AndroidNotificationAction('office', 'Office'),
-        AndroidNotificationAction('home', 'Home'),
-        AndroidNotificationAction('leave', 'Leave'),
-      ],
-    );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       1,
-      'Log Your Work Status',
-      'Don\'t forget to update your work status for today. A quick tap is all it takes!',
-      platformChannelSpecifics,
+      'Log Your Work Status (Test)',
+      'This is a test notification. Tapping an action should dismiss it.',
+      _notificationDetails,
       payload: 'Test_notification',
     );
   }
