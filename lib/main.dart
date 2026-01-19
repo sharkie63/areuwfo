@@ -82,27 +82,18 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
   }
 }
 
-// REFACTORED: This function is now public and uses the single source of truth.
 Future<void> updateStatusInBackground(WorkStatus status) async {
   try {
     developer.log('Background update started for status: $status', name: 'com.example.myapp.background');
-    
-    // 1. Read the log using the new centralized class
     final workLog = await WorkLogStorage.readWorkLog();
     final today = DateUtils.dateOnly(DateTime.now());
-    
-    // 2. Update the value
     workLog[today] = status;
-    
-    // 3. Write the entire log back
     await WorkLogStorage.writeWorkLog(workLog);
-
     developer.log('Background update successful.', name: 'com.example.myapp.background');
   } catch (e, s) {
     developer.log('FATAL ERROR in updateStatusInBackground: $e', name: 'com.example.myapp.background', error: e, stackTrace: s, level: 1200);
   }
 }
-
 
 final _router = GoRouter(
   routes: [
@@ -117,12 +108,9 @@ final _router = GoRouter(
 
 enum WorkStatus { none, office, home, leave }
 
-
-// ADDED: This new class centralizes all data access.
 class WorkLogStorage {
   static const _workLogKey = 'workLog';
 
-  // Reads the entire log from disk and decodes it.
   static Future<Map<DateTime, WorkStatus>> readWorkLog() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -135,11 +123,10 @@ class WorkLogStorage {
       });
     } catch (e) {
       developer.log('Error reading work log: $e', name: 'com.example.myapp.storage');
-      return {}; // Return empty map on error to prevent crash
+      return {};
     }
   }
 
-  // Encodes the entire log and writes it to disk.
   static Future<void> writeWorkLog(Map<DateTime, WorkStatus> log) async {
     final prefs = await SharedPreferences.getInstance();
     final Map<String, int> encodedLog = log.map(
@@ -148,7 +135,6 @@ class WorkLogStorage {
     await prefs.setString(_workLogKey, json.encode(encodedLog));
   }
 }
-
 
 class WorkLog with ChangeNotifier {
   final Map<DateTime, WorkStatus> _log = {};
@@ -293,7 +279,6 @@ class _HomePageWrapperState extends State<HomePageWrapper> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            // Optionally, return an error-specific widget
             return const Scaffold(
               body: Center(
                 child: Text('Failed to load data. Please restart the app.'),

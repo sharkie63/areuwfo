@@ -30,16 +30,26 @@ AreUWFO is a Flutter-based mobile application designed to help users track their
 ### Error Handling & Firebase
 - **Crashlytics Integration:** The app is integrated with Firebase Crashlytics to report crashes and errors.
 - **Zoned Error Handling:** The app uses `runZonedGuarded` to catch and report errors that occur in the Flutter framework.
-- **Firebase Configuration:** The app has been configured to use the correct Firebase project and app IDs.
 - **Build Context Safety:** Implemented checks to ensure `BuildContext` is not used in `async` gaps to prevent runtime crashes.
 
-## Current Plan: Implement Splash Screen & App Icon
+## Current Plan: Fixing Android Build & Firebase Integration
 
-The following steps were taken to enhance the application's startup experience and branding:
+A critical issue was identified where the Android application would crash on launch due to a misconfiguration with Firebase. The following steps were taken to diagnose and resolve the problem:
 
-1.  **Add Lottie Package:** The `lottie` package was added to the project to enable support for Lottie animations.
-2.  **Add Lottie Asset:** An `assets/lottie` directory was created, and the `loading.lottie` animation file was added.
-3.  **Update `pubspec.yaml`:** The `assets/lottie/` directory was declared in the `pubspec.yaml` file to make the asset accessible.
-4.  **Create Loading Page:** A new `LoadingPage` widget was created to display the Lottie animation.
-5.  **Implement Smart Loading:** The app's entry point (`lib/main.dart`) was refactored to use a `FutureBuilder`. This displays the `LoadingPage` while the `workLog.loadLog()` operation completes in the background, ensuring a smooth transition to the fully-loaded `HomePage`.
-6.  **Update App Icon:** The `flutter_launcher_icons` package was executed to generate and apply the new app icon from the user-provided `assets/icon/icon.png` file.
+1.  **Initial Diagnosis:** The app was crashing immediately upon startup. The initial investigation pointed towards an issue with Firebase initialization, as the crash occurred after integrating Firebase services like Crashlytics and Notifications.
+
+2.  **Google Services Plugin:** The root cause was traced back to the `com.google.gms.google-services` Gradle plugin not being correctly applied. This was resolved by:
+    *   Adding `classpath 'com.google.gms:google-services:4.4.2'` to the `dependencies` block in `android/build.gradle.kts`.
+    *   Applying the plugin `id("com.google.gms.google-services")` in the `android/app/build.gradle.kts` file.
+
+3.  **Package Name Mismatch:** After applying the plugin, a new, more informative error emerged: `No matching client found for package name 'com.example.myapp'`. This indicated that the `applicationId` in the app's build configuration did not match the package name registered in the `google-services.json` file from Firebase.
+
+4.  **Correcting Package Name:** The fix involved:
+    *   Reading the correct package name (`com.areuwfo.tracker`) from `android/app/google-services.json`.
+    *   Updating the `applicationId` and `namespace` in `android/app/build.gradle.kts` from the placeholder `com.example.myapp` to the correct `com.areuwfo.tracker`.
+
+5.  **Build Versioning:** For better tracking in Firebase Crashlytics, the `versionCode` in `android/app/build.gradle.kts` was incremented to `2` and `versionName` to `1.0.1`.
+
+6.  **Verification:** The package name was verified across all relevant Android configuration files, including `MainActivity.kt` and the various `AndroidManifest.xml` files, to ensure consistency.
+
+7.  **Final Resolution:** After a `flutter clean`, the app was successfully built and launched on the Android emulator without crashing, confirming that the Firebase integration is now correctly configured.
