@@ -1951,3 +1951,371 @@
 [error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
 [debug] [2026-01-18T21:08:40.850Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
 [debug] [2026-01-18T21:08:40.850Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T17:10:34.545Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T17:10:34.551Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T17:10:34.553Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T17:10:34.553Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T17:10:34.554Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T17:10:34.596Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T17:11:26.419Z] No OAuth tokens found
+[debug] [2026-01-19T17:11:26.419Z] No OAuth tokens found
+[debug] [2026-01-19T17:11:26.420Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T17:11:26.420Z] No OAuth tokens found
+[debug] [2026-01-19T17:11:26.420Z] No OAuth tokens found
+[debug] [2026-01-19T17:11:26.421Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:13:58.179Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:13:58.185Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:13:58.186Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:13:58.187Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:13:58.188Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:13:58.189Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:01.050Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:01.052Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:01.053Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:01.054Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:01.055Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:01.056Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:06.242Z] Running auto auth
+[debug] [2026-01-19T18:14:06.243Z] Running auto auth
+[debug] [2026-01-19T18:14:06.243Z] Running auto auth
+[debug] [2026-01-19T18:14:06.243Z] Running auto auth
+[debug] [2026-01-19T18:14:06.285Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.286Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:06.315Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.316Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:06.324Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.325Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:06.333Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.333Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:06.590Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:06.591Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:06.591Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:06.598Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.599Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.600Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.622Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.623Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.623Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.624Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.626Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.626Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.628Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.628Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.629Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.629Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.630Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T18:14:06.631Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.743Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:06.743Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:06.743Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:06.744Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.744Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.745Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.750Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.750Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:06.750Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.750Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.752Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.752Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.753Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.754Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.755Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T18:14:06.755Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:06.756Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T18:14:06.756Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.398Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:07.399Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:07.399Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:07.400Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.400Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.400Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.405Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.405Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.405Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.405Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.406Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.406Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.407Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.407Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.408Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.409Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.409Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T18:14:07.409Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.453Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:07.453Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:07.454Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:07.454Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.455Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.455Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.459Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.459Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.459Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.459Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.461Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.461Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.462Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.462Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.463Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T18:14:07.463Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.464Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T18:14:07.464Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T18:14:07.650Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T18:14:07.650Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T18:14:07.658Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T18:14:07.659Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.682Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T18:14:07.682Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.702Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T18:14:07.702Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.708Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T18:14:07.708Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.708Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.710Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.710Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.711Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:07.711Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:07.711Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.711Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:07.772Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T18:14:07.772Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.779Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T18:14:07.779Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.800Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T18:14:07.800Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.802Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T18:14:07.802Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T18:14:07.805Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T18:14:07.805Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:07.806Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.807Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.808Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:07.808Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:07.808Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:07.808Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:07.809Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:07.935Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:07.935Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:07.935Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:08.132Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:08.133Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:08.133Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:08.383Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T18:14:08.383Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T18:14:08.402Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T18:14:08.403Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.405Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T18:14:08.405Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.410Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T18:14:08.410Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.423Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T18:14:08.423Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.423Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:08.425Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:08.425Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:08.426Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:08.426Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:08.426Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:08.426Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:08.481Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T18:14:08.481Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.486Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T18:14:08.486Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T18:14:08.488Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T18:14:08.488Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.528Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T18:14:08.528Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.538Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T18:14:08.538Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T18:14:08.812Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:08.812Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:08.812Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:08.838Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:08.839Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:08.839Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:08.849Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:08.849Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:08.849Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:09.023Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.023Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:09.023Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:09.031Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.033Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.033Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.034Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.035Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.035Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.035Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:09.036Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:09.036Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:09.036Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:09.036Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:09.036Z] No OAuth tokens found
+[debug] [2026-01-19T18:14:09.036Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:09.037Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T18:14:09.248Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:09.248Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:09.248Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:09.277Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.278Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:09.278Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T18:14:09.424Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T18:14:09.425Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T18:14:09.425Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T18:14:09.624Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T18:14:09.625Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T18:14:09.625Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:30.848Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:30.855Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:30.856Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:30.857Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:30.859Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:30.860Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:55.149Z] Running auto auth
+[debug] [2026-01-19T19:41:55.150Z] Running auto auth
+[debug] [2026-01-19T19:41:55.194Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.195Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T19:41:55.235Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.235Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T19:41:55.510Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T19:41:55.510Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T19:41:55.511Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T19:41:55.517Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.518Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.519Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.546Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.547Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.550Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.551Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.553Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.553Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.559Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.559Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.560Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.560Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.563Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T19:41:55.563Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.702Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T19:41:55.702Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T19:41:55.703Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T19:41:55.703Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.704Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.705Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.715Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.715Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:55.716Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.716Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.717Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.718Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.720Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.720Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.722Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-01-19T19:41:55.722Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:55.724Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [none]
+[debug] [2026-01-19T19:41:55.724Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com x-goog-quota-user=projects/areuwfo-tracker
+[debug] [2026-01-19T19:41:56.656Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T19:41:56.664Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.670Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T19:41:56.670Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T19:41:56.685Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T19:41:56.685Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.710Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T19:41:56.710Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.719Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T19:41:56.720Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.721Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:56.724Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:56.727Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:56.728Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:56.729Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:56.729Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:56.731Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T19:41:56.875Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com 403
+[debug] [2026-01-19T19:41:56.875Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseio.com [omitted]
+[debug] [2026-01-19T19:41:56.920Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-19T19:41:56.921Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.951Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-19T19:41:56.955Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.960Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com 200
+[debug] [2026-01-19T19:41:56.960Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firestore.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.962Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-01-19T19:41:56.962Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/areuwfo-tracker/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-01-19T19:41:56.976Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T19:41:56.976Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T19:41:56.977Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T19:41:57.606Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.607Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:57.608Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:57.629Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.634Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.636Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.637Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.639Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.641Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:57.641Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:57.642Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:57.642Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:57.642Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:57.642Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:57.642Z] No OAuth tokens found
+[debug] [2026-01-19T19:41:57.643Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T19:41:57.644Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-19T19:41:57.876Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T19:41:57.876Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T19:41:57.876Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T19:41:58.282Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 200
+[debug] [2026-01-19T19:41:58.282Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"name":"projects/areuwfo-tracker/billingInfo","projectId":"areuwfo-tracker","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-19T19:41:58.283Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[debug] [2026-01-19T19:41:58.415Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:58.416Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:58.416Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-19T19:41:58.422Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-19T19:41:58.423Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-19T19:41:58.423Z] > authorizing via signed-in user (sharathsd63@gmail.com)

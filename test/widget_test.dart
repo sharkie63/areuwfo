@@ -36,7 +36,7 @@ void main() {
           ChangeNotifierProvider.value(value: workLog),
           ChangeNotifierProvider.value(value: themeProvider),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: HomePageWrapper(), // Contains the FutureBuilder for loading.
         ),
       ),
