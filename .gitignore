@@ -1,2 +1,52 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
 
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.settings/
+out/
+
+# Flutter
+.metadata
+.packages
+/build/
+/ios/Pods/
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+/ios/.symlinks/
+/ios/Runner/GeneratedPluginRegistrant.h
+/ios/Runner/GeneratedPluginRegistrant.m
+/ios/Runner/Info.plist
+/ios/Runner/Runner.xcscheme
+/ios/Runner/project.xcworkspace
+/ios/Runner.xcworkspace/
+/ios/Runner.xcodeproj/
 /android/key.properties
+/android/local.properties
+/android/.gradle/
+/android/app/src/main/assets/flutter_assets/
+/android/gradlew
+/android/gradlew.bat
+
+# Dart
+.dart_tool/
+.pub-cache/
+.pub/
+
+#Ignore Firebase
+firebase.json
+.firebaserc
