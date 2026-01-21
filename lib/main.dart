@@ -138,28 +138,45 @@ class _AppShellState extends State<AppShell> {
 }
 
 // The main application widget, built only after initialization is complete.
-class WorkTrackerApp extends StatelessWidget {
+class WorkTrackerApp extends StatefulWidget {
   const WorkTrackerApp({super.key});
 
-  // The router is now an instance variable, not static.
-  // This ensures it is created only after Firebase is initialized.
-  GoRouter get _router {
+  @override
+  State<WorkTrackerApp> createState() => _WorkTrackerAppState();
+}
+
+class _WorkTrackerAppState extends State<WorkTrackerApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
     final analytics = FirebaseAnalytics.instance;
     final observer = FirebaseAnalyticsObserver(analytics: analytics);
 
-    return GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (context, state) => const MyHomePage()),
-        GoRoute(path: '/settings', builder: (context, state) => const SettingsPageNew()),
-      ],
+    _router = GoRouter(
+      initialLocation: '/',
       observers: [observer],
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return ScaffoldWithNavBar(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [GoRoute(path: '/', pageBuilder: (context, state) => const NoTransitionPage(child: CalendarPage()))],
+            ),
+            StatefulShellBranch(
+              routes: [GoRoute(path: '/settings', pageBuilder: (context, state) => const NoTransitionPage(child: SettingsPageNew()))],
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     final ThemeData lightTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -170,11 +187,17 @@ class WorkTrackerApp extends StatelessWidget {
         background: const Color(0xFFf8fafc),
         surface: Colors.white,
       ),
-      textTheme: GoogleFonts.interTextTheme(textTheme).copyWith(
+      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
         displayLarge: const TextStyle(fontWeight: FontWeight.bold),
         titleLarge: const TextStyle(fontWeight: FontWeight.w600),
+        headlineSmall: const TextStyle(fontWeight: FontWeight.bold),
       ),
       scaffoldBackgroundColor: const Color(0xFFf8fafc),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF10b981),
+        unselectedItemColor: Colors.grey.shade600,
+      ),
     );
 
     final ThemeData darkTheme = ThemeData(
@@ -369,120 +392,57 @@ class WorkLog with ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class ScaffoldWithNavBar extends StatelessWidget {
+  const ScaffoldWithNavBar({super.key, required this.navigationShell});
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late DateTime _displayedMonth;
-  int _currentIndex = 0;
-
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _displayedMonth = DateUtils.dateOnly(DateTime.now());
-
-    _requestPermissions();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      developer.log(
-        "[LIFECYCLE] App resumed, reloading work log.",
-        name: "com.example.myapp.lifecycle"
-      );
-      Provider.of<WorkLog>(context, listen: false).loadLog();
-    }
-  }
-
-  void _requestPermissions() async {
-    final isAllowed = await NotificationService.instance.areNotificationsEnabled();
-    if (!isAllowed) {
-      await NotificationService.instance.requestStandardPermissions();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _changeMonth(int monthIncrement) {
-    setState(() {
-      _displayedMonth = DateTime(
-        _displayedMonth.year,
-        _displayedMonth.month + monthIncrement,
-        1,
-      );
-    });
-  }
-
-  void _setMonth(DateTime month) {
-    setState(() {
-      _displayedMonth = month;
-    });
-  }
+  final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      CalendarPage(
-        displayedMonth: _displayedMonth,
-        onMonthChanged: _changeMonth,
-        onMonthSelected: _setMonth
-      ),
-      const SettingsPageNew(),
-    ];
-
     return Scaffold(
-      body: pages[_currentIndex],
+      body: navigationShell,
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        currentIndex: navigationShell.currentIndex,
         onTap: (index) {
-          if (index == 1) {
-            context.push('/settings');
-          } else {
-             setState(() {
-              _currentIndex = index;
-            });
-          }
+          navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );
   }
 }
 
-class CalendarPage extends StatelessWidget {
-  final DateTime displayedMonth;
-  final ValueChanged<int> onMonthChanged;
-  final ValueChanged<DateTime> onMonthSelected;
+class CalendarPage extends StatefulWidget {
+  const CalendarPage({super.key});
 
-  const CalendarPage({
-    super.key,
-    required this.displayedMonth,
-    required this.onMonthChanged,
-    required this.onMonthSelected,
-  });
+  @override
+  State<CalendarPage> createState() => _CalendarPageState();
+}
+
+class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClientMixin {
+  late DateTime _displayedMonth;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayedMonth = DateUtils.dateOnly(DateTime.now());
+  }
+
+  void _changeMonth(int monthIncrement) {
+    setState(() {
+      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month + monthIncrement, 1);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
@@ -490,14 +450,11 @@ class CalendarPage extends StatelessWidget {
           const SizedBox(height: 40),
           _buildHeader(context),
           const SizedBox(height: 16),
-          AttendanceCard(displayedMonth: displayedMonth),
+          AttendanceCard(displayedMonth: _displayedMonth),
           const SizedBox(height: 16),
-          CalendarGrid(
-            displayedMonth: displayedMonth,
-            onMonthSwiped: onMonthChanged,
-          ),
+          CalendarGrid(displayedMonth: _displayedMonth, onMonthSwiped: _changeMonth),
           const SizedBox(height: 16),
-          StatusSummary(displayedMonth: displayedMonth),
+          StatusSummary(displayedMonth: _displayedMonth),
           const SizedBox(height: 16),
         ],
       ),
@@ -512,28 +469,21 @@ class CalendarPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              DateFormat.yMMMM().format(displayedMonth),
+              DateFormat.yMMMM().format(_displayedMonth),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: () => onMonthChanged(-1),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () => onMonthChanged(1),
-            ),
+            IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => _changeMonth(-1)),
+            IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => _changeMonth(1)),
           ],
         ),
       ],
     );
   }
 }
-
 
 class CalendarGrid extends StatefulWidget {
   final DateTime displayedMonth;

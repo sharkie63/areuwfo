@@ -1,4 +1,4 @@
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
@@ -7,6 +7,8 @@ import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsPageNew extends StatefulWidget {
   const SettingsPageNew({super.key});
@@ -15,11 +17,14 @@ class SettingsPageNew extends StatefulWidget {
   State<SettingsPageNew> createState() => _SettingsPageNewState();
 }
 
-class _SettingsPageNewState extends State<SettingsPageNew> {
+class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAliveClientMixin {
   TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
   bool _notificationsEnabled = false;
-  double _attendanceGoal = 60.0;
+  String _version = '';
   String _buildNumber = '';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -38,7 +43,6 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
         minute: int.parse(timeParts[1]),
       );
     }
-    _attendanceGoal = prefs.getDouble('attendanceGoal') ?? 60.0;
     final notificationsEnabled = await NotificationService.instance.areNotificationsEnabled();
     if (!mounted) return;
     setState(() {
@@ -48,7 +52,9 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
 
   void _loadPackageInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
+      _version = packageInfo.version;
       _buildNumber = packageInfo.buildNumber;
     });
   }
@@ -101,26 +107,40 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
     );
   }
 
+  Future<void> _exportToCsv() async {
+    final workLog = Provider.of<WorkLog>(context, listen: false);
+    String csv = 'Date,Status\n';
+    workLog.log.forEach((date, status) {
+      csv += '${date.toIso8601String().substring(0, 10)},${status.name}\n';
+    });
+
+    final directory = await getTemporaryDirectory();
+    final path = '${directory.path}/work_log.csv';
+    final file = File(path);
+    await file.writeAsString(csv);
+
+    await Share.shareXFiles([XFile(path)], text: 'Work Log CSV');
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
+    return SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+             Padding(
+              padding: const EdgeInsets.only(left: 8.0, top: 24.0, bottom: 16.0),
+              child: Text(
+                'Settings',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
             const _SettingsHeader(title: 'GOAL'),
             _SettingsCard(
               children: [
@@ -135,24 +155,18 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
                           const SizedBox(width: 8),
                           const Text('Office Attendance Goal', style: TextStyle(fontWeight: FontWeight.bold)),
                           const Spacer(),
-                          Text('${_attendanceGoal.toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981))),
+                          Text('${(themeProvider.attendanceGoal * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981))),
                         ],
                       ),
                       Slider(
-                        value: _attendanceGoal,
+                        value: themeProvider.attendanceGoal,
                         min: 0,
-                        max: 100,
+                        max: 1,
                         divisions: 100,
                         activeColor: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981),
-                        inactiveColor: Colors.grey.shade300,
+                        inactiveColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                         onChanged: (value) {
-                          setState(() {
-                            _attendanceGoal = value;
-                          });
-                        },
-                        onChangeEnd: (value) async {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setDouble('attendanceGoal', value);
+                          themeProvider.setAttendanceGoal(value);
                         },
                       ),
                       const Row(
@@ -171,22 +185,13 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
             _SettingsCard(
               children: [
                 _SettingsTile(
-                  icon: Icons.upload_file,
-                  iconColor: Colors.green,
+                  icon: Icons.ios_share,
+                  iconColor: Colors.blue,
                   title: 'Export to CSV',
-                  onTap: () async {
-                    final workLog = Provider.of<WorkLog>(context, listen: false);
-                    String csv = 'Date,Status\n';
-                    workLog.log.forEach((date, status) {
-                      csv += '${date.toIso8601String().substring(0, 10)},${status.name}\n';
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('CSV content printed to debug console.')),
-                    );
-                  },
+                  onTap: _exportToCsv,
                 ),
                 _SettingsTile(
-                  icon: Icons.delete_forever,
+                  icon: Icons.delete_outline,
                   iconColor: Colors.red,
                   title: 'Clear Work Log',
                   onTap: _showClearLogDialog,
@@ -205,7 +210,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
                     onChanged: (value) {
                       themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
                     },
-                    activeThumbColor: Colors.purple,
+                    activeColor: Colors.white,
+                    activeTrackColor: Colors.purple,
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
                 _SettingsTile(
@@ -217,7 +225,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
                     onChanged: (value) {
                       themeProvider.setHapticFeedback(value);
                     },
-                    activeThumbColor: Colors.orange,
+                    activeColor: Colors.white,
+                    activeTrackColor: Colors.orange,
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
               ],
@@ -260,7 +271,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
                         });
                       }
                     },
-                     activeThumbColor: Colors.deepPurple,
+                    activeColor: Colors.white,
+                    activeTrackColor: Colors.deepPurple,
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
                 _SettingsTile(
@@ -276,11 +290,13 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
                     ],
                   ),
                   onTap: () => _selectNotificationTime(context),
+                  enabled: _notificationsEnabled
                 ),
                 _SettingsTile(
-                  icon: Icons.send,
+                  icon: Icons.notification_important_outlined,
                   iconColor: Colors.teal,
                   title: 'Test Notification',
+                  trailing: const Icon(Icons.send, color: Colors.teal),
                   onTap: () {
                     NotificationService.instance.showTestNotification();
                   },
@@ -288,7 +304,13 @@ class _SettingsPageNewState extends State<SettingsPageNew> {
               ],
             ),
             const SizedBox(height: 24),
-            Center(child: Text('BUILD 1.0.$_buildNumber', style: const TextStyle(color: Colors.grey, fontSize: 12))),
+            if (_version.isNotEmpty)
+              Center(
+                child: Text(
+                  'Version $_version+$_buildNumber',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ),
             const SizedBox(height: 24),
           ],
         ),
@@ -328,6 +350,7 @@ class _SettingsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: isDarkMode ? BorderSide(color: Colors.grey.shade800) : BorderSide.none,
       ),
       color: isDarkMode ? const Color(0xFF161B22) : Colors.white,
       child: Column(
@@ -343,6 +366,7 @@ class _SettingsTile extends StatelessWidget {
   final String title;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final bool enabled;
 
   const _SettingsTile({
     required this.icon,
@@ -350,22 +374,27 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     this.trailing,
     this.onTap,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Color effectiveIconColor = enabled ? iconColor : Colors.grey;
+    final Color? effectiveTitleColor = enabled ? null : Colors.grey;
+
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: effectiveIconColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: iconColor),
+        child: Icon(icon, color: effectiveIconColor),
       ),
-      title: Text(title),
-      trailing: trailing ?? (onTap != null ? const Icon(Icons.arrow_forward_ios, size: 16) : null),
-      onTap: onTap,
+      title: Text(title, style: TextStyle(color: effectiveTitleColor)),
+      trailing: trailing ?? (onTap != null ? Icon(Icons.arrow_forward_ios, size: 16, color: effectiveTitleColor) : null),
+      onTap: enabled ? onTap : null,
+      enabled: enabled,
     );
   }
 }

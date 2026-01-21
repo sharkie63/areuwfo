@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/main.dart'; 
+import 'package:myapp/main.dart';
+import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 class AttendanceCard extends StatelessWidget {
@@ -10,10 +11,12 @@ class AttendanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Consumer<WorkLog>(
       builder: (context, workLog, child) {
         final percentage = workLog.officeAttendancePercentage(displayedMonth);
-        final bool targetMet = percentage >= 60;
+        final goalPercentage = themeProvider.attendanceGoal * 100;
+        final bool targetMet = percentage >= goalPercentage;
 
         return Container(
           padding: const EdgeInsets.all(16.0),
@@ -33,7 +36,7 @@ class AttendanceCard extends StatelessWidget {
             children: [
               _buildProgressIndicator(theme, percentage),
               const SizedBox(width: 24),
-              _buildLegend(theme, targetMet),
+              _buildLegend(theme, targetMet, goalPercentage),
             ],
           ),
         );
@@ -82,7 +85,7 @@ class AttendanceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLegend(ThemeData theme, bool targetMet) {
+  Widget _buildLegend(ThemeData theme, bool targetMet, double goalPercentage) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +117,7 @@ class AttendanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Monthly Goal: 60%',
+            'Monthly Goal: ${goalPercentage.toInt()}%',
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 12),
