@@ -20,6 +20,8 @@ AreUWFO is a Flutter-based mobile application designed to help users track their
 - **Customizable Theme:** The app uses a `ThemeProvider` to manage theme-related settings.
 - **Lottie Animation Splash Screen:** The app now displays a smooth `.lottie` animation while initial data is being loaded, replacing the previous static loading indicator.
 - **Custom App Icon:** The app's launcher icon has been updated by replacing the source image and running the `flutter_launcher_icons` package to generate all necessary icon sizes.
+- **Dynamic `StatusSummary` Widget:** This new widget displays a summary of the total "Office," "Home," and "Leave" days for the currently displayed month. It is integrated with the `WorkLog` provider to update dynamically as the user logs their work status.
+- **Layout Adjustments:** The vertical spacing on the `CalendarPage` has been optimized to ensure that all key components, including the `StatusSummary`, are visible on most screen sizes without requiring the user to scroll.
 
 ### Notifications
 - **Daily Reminders:** Users can enable daily reminders to log their work status.
@@ -32,24 +34,26 @@ AreUWFO is a Flutter-based mobile application designed to help users track their
 - **Zoned Error Handling:** The app uses `runZonedGuarded` to catch and report errors that occur in the Flutter framework.
 - **Build Context Safety:** Implemented checks to ensure `BuildContext` is not used in `async` gaps to prevent runtime crashes.
 
-## Current Plan: Fixing Android Build & Firebase Integration
+## Current Plan: New UI/UX Redesign
 
-A critical issue was identified where the Android application would crash on launch due to a misconfiguration with Firebase. The following steps were taken to diagnose and resolve the problem:
+The application is undergoing a significant UI/UX redesign to create a more modern, intuitive, and visually appealing experience. This redesign is based on a new design mockup that introduces a cleaner layout, improved typography, and a fresh color scheme.
 
-1.  **Initial Diagnosis:** The app was crashing immediately upon startup. The initial investigation pointed towards an issue with Firebase initialization, as the crash occurred after integrating Firebase services like Crashlytics and Notifications.
+### New Design Implementation Plan:
 
-2.  **Google Services Plugin:** The root cause was traced back to the `com.google.gms.google-services` Gradle plugin not being correctly applied. This was resolved by:
-    *   Adding `classpath 'com.google.gms:google-services:4.4.2'` to the `dependencies` block in `android/build.gradle.kts`.
-    *   Applying the plugin `id("com.google.gms.google-services")` in the `android/app/build.gradle.kts` file.
+1.  **Theme Update:**
+    *   The color scheme has been updated to use a new primary color (`#10b981`).
+    *   The "Inter" font has been integrated using the `google_fonts` package to enhance typography.
 
-3.  **Package Name Mismatch:** After applying the plugin, a new, more informative error emerged: `No matching client found for package name 'com.example.myapp'`. This indicated that the `applicationId` in the app's build configuration did not match the package name registered in the `google-services.json` file from Firebase.
+2.  **Home Page Refactor:**
+    *   The existing `AppBar` has been removed and replaced with a custom header that includes the current month and year, along with navigation controls.
+    *   The layout has been restructured to accommodate the new UI components.
 
-4.  **Correcting Package Name:** The fix involved:
-    *   Reading the correct package name (`com.areuwfo.tracker`) from `android/app/google-services.json`.
-    *   Updating the `applicationId` and `namespace` in `android/app/build.gradle.kts` from the placeholder `com.example.myapp` to the correct `com.areuwfo.tracker`.
+3.  **New Widget Creation:**
+    *   **`AttendanceCard`:** A new widget has been built to display the circular progress indicator for "in-office" attendance, the monthly attendance goal, and a legend for the different work statuses.
+    *   **`StatusSummary`:** A set of cards has been created to provide a quick summary of the total number of "Office," "Home," and "Leave" days for the current month.
 
-5.  **Build Versioning:** For better tracking in Firebase Crashlytics, the `versionCode` in `android/app/build.gradle.kts` was incremented to `2` and `versionName` to `1.0.1`.
+4.  **Calendar Styling:**
+    *   The `CalendarGrid` widget has been restyled to match the new design, including rounded date cells, updated typography, and new color-coded indicators for each work status.
 
-6.  **Verification:** The package name was verified across all relevant Android configuration files, including `MainActivity.kt` and the various `AndroidManifest.xml` files, to ensure consistency.
-
-7.  **Final Resolution:** After a `flutter clean`, the app was successfully built and launched on the Android emulator without crashing, confirming that the Firebase integration is now correctly configured.
+5.  **Bottom Navigation:**
+    *   A new bottom navigation bar has been implemented to provide clear and easy access to the main sections of the app, such as "Calendar" and "Settings."

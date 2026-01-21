@@ -167,7 +167,7 @@
     },
     {
       "name": "google_fonts",
-      "version": "6.3.3",
+      "version": "7.0.2",
       "dependencies": [
         "crypto",
         "flutter",

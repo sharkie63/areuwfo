@@ -34,7 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
         minute: int.parse(timeParts[1]),
       );
     }
-    final notificationsEnabled = await NotificationService().areNotificationsEnabled();
+    final notificationsEnabled = await NotificationService.instance.areNotificationsEnabled();
     if (!mounted) return;
     setState(() {
       _notificationsEnabled = notificationsEnabled;
@@ -57,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _notificationTime = picked;
     });
     if (_notificationsEnabled) {
-      await NotificationService().scheduleDailyReminder(_notificationTime);
+      await NotificationService.instance.scheduleDailyReminder(_notificationTime);
     }
   }
 
@@ -145,15 +145,14 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Enable Daily Reminders'),
             value: _notificationsEnabled,
             onChanged: (bool value) async {
-              final notificationService = NotificationService();
               if (value) {
-                bool standardGranted = await notificationService.requestStandardPermissions();
+                bool standardGranted = await NotificationService.instance.requestStandardPermissions();
                 if (!mounted) return;
                 if (standardGranted) {
-                  bool exactAlarmGranted = await notificationService.requestExactAlarmPermission();
+                  bool exactAlarmGranted = await NotificationService.instance.requestExactAlarmPermission();
                   if (!mounted) return;
                   if (exactAlarmGranted) {
-                    await notificationService.scheduleDailyReminder(_notificationTime);
+                    await NotificationService.instance.scheduleDailyReminder(_notificationTime);
                     if (!mounted) return;
                     setState(() {
                       _notificationsEnabled = true;
@@ -167,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 }
               } else {
-                await notificationService.cancelAllNotifications();
+                await NotificationService.instance.cancelAllNotifications();
                 if (!mounted) return;
                 setState(() {
                   _notificationsEnabled = false;
@@ -188,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Send a notification immediately'),
             leading: const Icon(Icons.notification_important),
             onTap: () {
-              NotificationService().showTestNotification();
+              NotificationService.instance.showTestNotification();
             },
           ),
           Padding(

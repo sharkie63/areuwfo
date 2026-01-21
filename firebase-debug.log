@@ -2487,3 +2487,38 @@
 [error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
 [debug] [2026-01-19T19:59:15.174Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
 [debug] [2026-01-19T19:59:15.174Z] > authorizing via signed-in user (sharathsd63@gmail.com)
+[debug] [2026-01-21T17:06:19.882Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:19.893Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:19.895Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:19.897Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:19.899Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-21T17:06:19.902Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-21T17:06:19.937Z] Running auto auth
+[debug] [2026-01-21T17:06:19.938Z] Running auto auth
+[debug] [2026-01-21T17:06:20.018Z] No OAuth tokens found
+[debug] [2026-01-21T17:06:20.028Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-21T17:06:20.121Z] No OAuth tokens found
+[debug] [2026-01-21T17:06:20.122Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-21T17:06:20.364Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 403
+[debug] [2026-01-21T17:06:20.364Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo {"error":{"code":403,"message":"Request had insufficient authentication scopes.","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_SCOPE_INSUFFICIENT","domain":"googleapis.com","metadata":{"method":"google.cloud.billing.v1.CloudBilling.GetProjectBillingInfo","service":"cloudbilling.googleapis.com"}}]}}
+[debug] [2026-01-21T17:06:20.388Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:20.399Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:20.406Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:20.408Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[error] Failed to fetch Firebase Project from Studio Workspace because WORKSPACE_SLUG environment variable is empty
+[debug] [2026-01-21T17:06:20.413Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-21T17:06:20.414Z] > authorizing via signed-in user (id-monospace-workstations-sa@monospace-6.iam.gserviceaccount.com)
+[debug] [2026-01-21T17:06:20.414Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email"]
+[debug] [2026-01-21T17:06:20.414Z] > authorizing via signed-in user (id-monospace-workstations-sa@monospace-6.iam.gserviceaccount.com)
+[debug] [2026-01-21T17:06:20.414Z] No OAuth tokens found
+[debug] [2026-01-21T17:06:20.415Z] No OAuth tokens found
+[debug] [2026-01-21T17:06:20.415Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-21T17:06:20.416Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo [none]
+[debug] [2026-01-21T17:06:20.522Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/areuwfo-tracker/billingInfo 403

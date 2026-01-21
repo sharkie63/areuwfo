@@ -6,12 +6,7 @@ import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
 class NotificationService {
-  static final NotificationService _notificationService =
-      NotificationService._internal();
-
-  factory NotificationService() {
-    return _notificationService;
-  }
+  static final NotificationService instance = NotificationService._internal();
 
   NotificationService._internal();
 
