@@ -54,7 +54,7 @@ class AttendanceCard extends StatelessWidget {
             child: CircularProgressIndicator(
               value: percentage / 100,
               strokeWidth: 8,
-              backgroundColor: theme.colorScheme.surfaceVariant,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
             ),
           ),

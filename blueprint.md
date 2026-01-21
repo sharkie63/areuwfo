@@ -22,6 +22,7 @@ AreUWFO is a Flutter-based mobile application designed to help users track their
 - **Custom App Icon:** The app's launcher icon has been updated by replacing the source image and running the `flutter_launcher_icons` package to generate all necessary icon sizes.
 - **Dynamic `StatusSummary` Widget:** This new widget displays a summary of the total "Office," "Home," and "Leave" days for the currently displayed month. It is integrated with the `WorkLog` provider to update dynamically as the user logs their work status.
 - **Layout Adjustments:** The vertical spacing on the `CalendarPage` has been optimized to ensure that all key components, including the `StatusSummary`, are visible on most screen sizes without requiring the user to scroll.
+- **Dark Mode Enhancement:** Updated the application's dark theme to a new, modern color scheme based on user-provided designs. The new theme improves visibility and aesthetics, particularly on the calendar page. The color palette includes a deep navy background (`#0D1117`), slightly lighter cards (`#161B22`), and a vibrant green accent (`#238636`), with improved text colors (`#C9D1D9`) for better readability. The `DayCard` widget was also updated to ensure calendar dates are clearly visible against their status-colored backgrounds in dark mode.
 
 ### Notifications
 - **Daily Reminders:** Users can enable daily reminders to log their work status.

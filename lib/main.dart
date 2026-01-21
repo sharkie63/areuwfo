@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:myapp/attendance_card.dart';
 import 'package:myapp/loading_page.dart';
 import 'package:myapp/notifications.dart';
-import 'package:myapp/settings_page.dart';
+import 'package:myapp/settings_page_new.dart';
 import 'package:myapp/status_summary.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -150,7 +150,7 @@ class WorkTrackerApp extends StatelessWidget {
     return GoRouter(
       routes: [
         GoRoute(path: '/', builder: (context, state) => const MyHomePage()),
-        GoRoute(path: '/settings', builder: (context, state) => const SettingsPage()),
+        GoRoute(path: '/settings', builder: (context, state) => const SettingsPageNew()),
       ],
       observers: [observer],
     );
@@ -180,12 +180,25 @@ class WorkTrackerApp extends StatelessWidget {
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF10b981),
+        seedColor: const Color(0xFF238636),
         brightness: Brightness.dark,
+        background: const Color(0xFF0D1117),
+        surface: const Color(0xFF161B22),
+        onSurface: const Color(0xFFC9D1D9),
+        primary: const Color(0xFF238636),
+        onPrimary: Colors.white,
       ),
-      textTheme: GoogleFonts.interTextTheme(textTheme).copyWith(
-        displayLarge: const TextStyle(fontWeight: FontWeight.bold),
-        titleLarge: const TextStyle(fontWeight: FontWeight.w600),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        displayLarge: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
+        titleLarge: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFC9D1D9)),
+        headlineSmall: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
+        bodyMedium: const TextStyle(color: Color(0xFFC9D1D9)),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF0D1117),
+       bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF161B22),
+        selectedItemColor: const Color(0xFF238636),
+        unselectedItemColor: Colors.grey.shade600,
       ),
     );
 
@@ -425,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         onMonthChanged: _changeMonth,
         onMonthSelected: _setMonth
       ),
-      const SettingsPage(),
+      const SettingsPageNew(),
     ];
 
     return Scaffold(
@@ -451,8 +464,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
             label: 'Settings',
           ),
         ],
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }
@@ -702,6 +713,7 @@ class DayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     Color? bgColor;
     Color? textColor;
     BoxBorder? border;
@@ -711,24 +723,47 @@ class DayCard extends StatelessWidget {
     }
 
     if (!isWeekend) {
-      switch (status) {
-        case WorkStatus.office:
-          bgColor = const Color(0xFFd1fae5);
-          textColor = const Color(0xFF065f46);
-          break;
-        case WorkStatus.home:
-          bgColor = const Color(0xFFfee2e2);
-          textColor = const Color(0xFF991b1b);
-          break;
-        case WorkStatus.leave:
-          bgColor = const Color(0xFFfef3c7);
-          textColor = const Color(0xFF92400e);
-          break;
-        case WorkStatus.none:
-          break;
+      if (isDarkMode) {
+        switch (status) {
+          case WorkStatus.office:
+            bgColor = const Color(0xFF238636);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.home:
+            bgColor = const Color(0xFFB94545);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.leave:
+            bgColor = const Color(0xFF92400e);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.none:
+            bgColor = const Color(0xFF22272E);
+            break;
+        }
+      } else {
+        switch (status) {
+          case WorkStatus.office:
+            bgColor = const Color(0xFFd1fae5);
+            textColor = const Color(0xFF065f46);
+            break;
+          case WorkStatus.home:
+            bgColor = const Color(0xFFfee2e2);
+            textColor = const Color(0xFF991b1b);
+            break;
+          case WorkStatus.leave:
+            bgColor = const Color(0xFFfef3c7);
+            textColor = const Color(0xFF92400e);
+            break;
+          case WorkStatus.none:
+            break;
+        }
       }
     } else {
        border = Border.all(color: Colors.transparent);
+       if (isDarkMode) {
+        bgColor = const Color(0xFF0D1117);
+       }
     }
 
     return GestureDetector(
@@ -745,7 +780,7 @@ class DayCard extends StatelessWidget {
             date.day.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: textColor ?? (isWeekend ? Colors.grey.shade400 : null),
+              color: textColor ?? (isWeekend ? Colors.grey.shade600 : (isDarkMode ? Colors.grey.shade400 : null)),
             ),
           ),
         ),
