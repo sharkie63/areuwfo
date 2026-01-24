@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
-import 'package:myapp/notifications.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,8 +18,6 @@ class SettingsPageNew extends StatefulWidget {
 }
 
 class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAliveClientMixin {
-  TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
-  bool _notificationsEnabled = false;
   String _version = '';
   String _buildNumber = '';
 
@@ -30,26 +27,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
   @override
   void initState() {
     super.initState();
-    _loadSettings();
     _loadPackageInfo();
   }
 
-  void _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timeString = prefs.getString('notificationTime');
-    if (timeString != null) {
-      final timeParts = timeString.split(':');
-      _notificationTime = TimeOfDay(
-        hour: int.parse(timeParts[0]),
-        minute: int.parse(timeParts[1]),
-      );
-    }
-    final notificationsEnabled = await NotificationService.instance.areNotificationsEnabled();
-    if (!mounted) return;
-    setState(() {
-      _notificationsEnabled = notificationsEnabled;
-    });
-  }
+
 
   void _loadPackageInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -60,25 +41,7 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
     });
   }
 
-  Future<void> _selectNotificationTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _notificationTime,
-    );
-    if (picked == null || picked == _notificationTime) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('notificationTime', '${picked.hour}:${picked.minute}');
-
-    if (!mounted) return;
-
-    setState(() {
-      _notificationTime = picked;
-    });
-    if (_notificationsEnabled) {
-      await NotificationService.instance.scheduleDailyReminder(_notificationTime);
-    }
-  }
 
   void _showClearLogDialog() {
     showDialog(
@@ -216,76 +179,6 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
-                ),
-              ],
-            ),
-            const _SettingsHeader(title: 'NOTIFICATIONS'),
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: Icons.notifications_active_outlined,
-                  iconColor: Colors.deepPurple,
-                  title: 'Daily Reminders',
-                  trailing: Switch(
-                    value: _notificationsEnabled,
-                    onChanged: (bool value) async {
-                       if (value) {
-                        bool standardGranted = await NotificationService.instance.requestStandardPermissions();
-                        if (!mounted) return;
-                        if (standardGranted) {
-                          bool exactAlarmGranted = await NotificationService.instance.requestExactAlarmPermission();
-                          if (!mounted) return;
-                          if (exactAlarmGranted) {
-                            await NotificationService.instance.scheduleDailyReminder(_notificationTime);
-                            if (!mounted) return;
-                            setState(() {
-                              _notificationsEnabled = true;
-                            });
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Notification permissions are required for reminders.')),
-                          );
-                        }
-                      } else {
-                        await NotificationService.instance.cancelAllNotifications();
-                        if (!mounted) return;
-                        setState(() {
-                          _notificationsEnabled = false;
-                        });
-                      }
-                    },
-                    activeColor: Colors.white,
-                    activeTrackColor: Colors.deepPurple,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
-                  ),
-                ),
-                _SettingsTile(
-                  icon: Icons.access_time,
-                  iconColor: Colors.blue,
-                  title: 'Notification Time',
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_notificationTime.format(context), style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.edit, size: 16),
-                    ],
-                  ),
-                  onTap: () => _selectNotificationTime(context),
-                  enabled: _notificationsEnabled
-                ),
-                _SettingsTile(
-                  icon: Icons.notification_important_outlined,
-                  iconColor: Colors.teal,
-                  title: 'Test Notification',
-                  trailing: const Icon(Icons.send, color: Colors.teal),
-                  onTap: () {
-                    NotificationService.instance.showTestNotification();
-                  },
                 ),
               ],
             ),
