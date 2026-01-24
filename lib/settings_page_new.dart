@@ -380,7 +380,7 @@ class _SettingsTile extends StatelessWidget {
       title: Text(title, style: TextStyle(color: effectiveTitleColor)),
       trailing: trailing ?? (onTap != null ? Icon(Icons.arrow_forward_ios, size: 16, color: effectiveTitleColor) : null),
       onTap: enabled && onTap != null ? () {
-        HapticFeedback.mediumImpact();
+        HapticFeedback.vibrate();
         onTap!();
       } : null,
       enabled: enabled,
