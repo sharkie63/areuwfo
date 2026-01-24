@@ -41,12 +41,14 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val properties = keystoreProperties()
-            keyAlias = properties.getProperty("keyAlias")
-            keyPassword = properties.getProperty("keyPassword")
-            storeFile = file(properties.getProperty("storeFile"))
-            storePassword = properties.getProperty("storePassword")
+        val properties = keystoreProperties()
+        if (properties.getProperty("storeFile") != null) {
+            create("release") {
+                keyAlias = properties.getProperty("keyAlias")
+                keyPassword = properties.getProperty("keyPassword")
+                storeFile = file(properties.getProperty("storeFile"))
+                storePassword = properties.getProperty("storePassword")
+            }
         }
     }
 
@@ -55,7 +57,10 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            val properties = keystoreProperties()
+            if (properties.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
