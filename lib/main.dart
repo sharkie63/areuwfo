@@ -684,7 +684,7 @@ class DayCard extends StatelessWidget {
             textColor = Colors.white;
             break;
           case WorkStatus.leave:
-            bgColor = const Color(0xFF92400e);
+            bgColor = const Color(0xFFfbbf24);
             textColor = Colors.white;
             break;
           case WorkStatus.none:

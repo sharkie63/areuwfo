@@ -86,6 +86,13 @@ class AttendanceCard extends StatelessWidget {
   }
 
   Widget _buildLegend(ThemeData theme, bool targetMet, double goalPercentage) {
+    final isDarkMode = theme.brightness == Brightness.dark;
+    
+    // Define theme-aware colors
+    final officeColor = isDarkMode ? const Color(0xFF238636) : const Color(0xFFd1fae5);
+    final homeColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFfee2e2);
+    final leaveColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFfef3c7);
+    
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,11 +130,11 @@ class AttendanceCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildLegendItem(const Color(0xFFd1fae5), 'Office', theme),
-              const SizedBox(width: 16),
-              _buildLegendItem(const Color(0xFFfee2e2), 'Home', theme),
-              const SizedBox(width: 16),
-              _buildLegendItem(const Color(0xFFfef3c7), 'Leave', theme),
+              _buildLegendItem(officeColor, 'Office', theme),
+              const SizedBox(width: 8),
+              _buildLegendItem(homeColor, 'Home', theme),
+              const SizedBox(width: 8),
+              _buildLegendItem(leaveColor, 'Leave', theme),
             ],
           )
         ],

@@ -46,6 +46,18 @@ class StatusSummary extends StatelessWidget {
 
         final totalWorkingDays = totalWeekdays - leaveDays;
 
+        final isDarkMode = theme.brightness == Brightness.dark;
+        
+        // Define theme-aware colors
+        final officeIconColor = isDarkMode ? const Color(0xFF238636) : const Color(0xFF10b981);
+        final officeBgColor = isDarkMode ? const Color(0xFF238636) : const Color(0xFFd1fae5);
+        
+        final homeIconColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFef4444);
+        final homeBgColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFfee2e2);
+        
+        final leaveIconColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFf59e0b);
+        final leaveBgColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFfef3c7);
+        
         return Column(
           children: [
             Row(
@@ -56,8 +68,8 @@ class StatusSummary extends StatelessWidget {
                     icon: Icons.apartment,
                     label: 'OFFICE',
                     value: officeDays.toString(),
-                    iconColor: const Color(0xFF10b981),
-                    bgColor: const Color(0xFFd1fae5),
+                    iconColor: officeIconColor,
+                    bgColor: officeBgColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -67,8 +79,8 @@ class StatusSummary extends StatelessWidget {
                     icon: Icons.home_work,
                     label: 'HOME',
                     value: homeDays.toString(),
-                    iconColor: const Color(0xFFef4444),
-                    bgColor: const Color(0xFFfee2e2),
+                    iconColor: homeIconColor,
+                    bgColor: homeBgColor,
                   ),
                 ),
               ],
@@ -82,8 +94,8 @@ class StatusSummary extends StatelessWidget {
                     icon: Icons.flight_takeoff,
                     label: 'LEAVE DAYS',
                     value: leaveDays.toString(),
-                    iconColor: const Color(0xFFf59e0b),
-                    bgColor: const Color(0xFFfef3c7),
+                    iconColor: leaveIconColor,
+                    bgColor: leaveBgColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -114,7 +126,7 @@ class StatusSummary extends StatelessWidget {
     required Color bgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16.0),
@@ -130,15 +142,15 @@ class StatusSummary extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(99),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: 18),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
