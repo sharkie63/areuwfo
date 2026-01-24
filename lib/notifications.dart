@@ -1,3 +1,4 @@
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -5,12 +6,7 @@ import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
 class NotificationService {
-  static final NotificationService _notificationService =
-      NotificationService._internal();
-
-  factory NotificationService() {
-    return _notificationService;
-  }
+  static final NotificationService instance = NotificationService._internal();
 
   NotificationService._internal();
 
@@ -22,7 +18,7 @@ class NotificationService {
           onDidReceiveBackgroundNotificationResponse}) async {
     tz.initializeTimeZones();
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
@@ -44,10 +40,44 @@ class NotificationService {
     );
   }
 
-  Future<bool> requestPermissions() async {
-    bool? result;
+  Future<bool> requestStandardPermissions() async {
     if (Platform.isIOS) {
-      result = await flutterLocalNotificationsPlugin
+      return await flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                  IOSFlutterLocalNotificationsPlugin>()
+              ?.requestPermissions(
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+          false;
+    } else if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestNotificationsPermission() ?? false;
+    }
+    return false;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestExactAlarmsPermission() ?? false;
+    }
+    return true; 
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.areNotificationsEnabled() ?? false;
+    } else if (Platform.isIOS) {
+      final result = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
@@ -55,31 +85,26 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-    } else if (Platform.isAndroid) {
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      final bool? notificationPermission = await androidPlugin?.requestNotificationsPermission();
-      final bool? exactAlarmPermission = await androidPlugin?.requestExactAlarmsPermission();
-      result = (notificationPermission ?? false) && (exactAlarmPermission ?? false);
+      return result ?? false;
     }
-    return result ?? false;
+    return false;
   }
 
-  Future<bool> isNotificationAllowed() async {
-    bool? isAllowed;
-    if (Platform.isAndroid) {
-      final androidPlugin = flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      isAllowed = await androidPlugin?.areNotificationsEnabled();
-    } else if (Platform.isIOS) {
-      // On iOS, we can't check without asking.
-      // We will assume true and let the request flow in the settings page handle denial.
-      return true;
-    }
-    return isAllowed ?? false;
+  NotificationDetails get _notificationDetails {
+     return const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder_channel',
+          'Daily Reminders',
+          channelDescription: 'Reminders to log your work status.',
+          actions: [
+            AndroidNotificationAction('office', 'Office', cancelNotification: true),
+            AndroidNotificationAction('home', 'Home', cancelNotification: true),
+            AndroidNotificationAction('leave', 'Leave', cancelNotification: true),
+          ],
+        ),
+      );
   }
+
 
   Future<void> scheduleDailyReminder(TimeOfDay time) async {
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -87,46 +112,19 @@ class NotificationService {
       'Log Your Work Status',
       'Don\'t forget to update your work status for today. A quick tap is all it takes!',
       _nextInstanceOfTime(time),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder_channel',
-          'Daily Reminders',
-          channelDescription: 'Reminders to log your work status.',
-          actions: [
-            AndroidNotificationAction('office', 'Office'),
-            AndroidNotificationAction('home', 'Home'),
-            AndroidNotificationAction('leave', 'Leave'),
-          ],
-        ),
-      ),
+      _notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // Removed uiLocalNotificationDateInterpretation as it's no longer a direct parameter or its usage has changed
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'Work_log_notification',
     );
   }
 
   Future<void> showTestNotification() async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'test_channel',
-      'Test Notifications',
-      channelDescription: 'Channel for testing notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      actions: [
-        AndroidNotificationAction('office', 'Office'),
-        AndroidNotificationAction('home', 'Home'),
-        AndroidNotificationAction('leave', 'Leave'),
-      ],
-    );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       1,
-      'Log Your Work Status',
-      'Don\'t forget to update your work status for today. A quick tap is all it takes!',
-      platformChannelSpecifics,
+      'Log Your Work Status (Test)',
+      'This is a test notification. Tapping an action should dismiss it.',
+      _notificationDetails,
       payload: 'Test_notification',
     );
   }

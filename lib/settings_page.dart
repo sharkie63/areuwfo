@@ -1,13 +1,10 @@
+
 import 'package:flutter/material.dart';
-import 'package:myapp/loading_page.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
+import 'package:myapp/notifications.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:csv/csv.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:myapp/notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -18,117 +15,60 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _remindersEnabled = false;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 17, minute: 0);
-  bool _notificationsAllowed = false;
+  TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _loadReminderSettings();
-    _checkNotificationPermissions();
+    _loadSettings();
   }
 
-  void _checkNotificationPermissions() async {
-    final isAllowed = await NotificationService().isNotificationAllowed();
-    setState(() {
-      _notificationsAllowed = isAllowed;
-      if (!isAllowed) {
-        _remindersEnabled = false;
-        _saveReminderSettings();
-      }
-    });
-  }
-
-  void _loadReminderSettings() async {
+  void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _remindersEnabled = prefs.getBool('remindersEnabled') ?? false;
-      final reminderHour = prefs.getInt('reminderHour') ?? 17;
-      final reminderMinute = prefs.getInt('reminderMinute') ?? 0;
-      _reminderTime = TimeOfDay(hour: reminderHour, minute: reminderMinute);
-    });
-  }
-
-  Future<void> _saveReminderSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('remindersEnabled', _remindersEnabled);
-    await prefs.setInt('reminderHour', _reminderTime.hour);
-    await prefs.setInt('reminderMinute', _reminderTime.minute);
-  }
-
-  void _onRemindersChanged(bool value) async {
-    if (value) {
-      final isAllowed = await NotificationService().requestPermissions();
-      if (isAllowed) {
-        setState(() {
-          _remindersEnabled = true;
-          _notificationsAllowed = true;
-        });
-        NotificationService().scheduleDailyReminder(_reminderTime);
-      } else {
-        setState(() {
-          _remindersEnabled = false;
-          _notificationsAllowed = false;
-        });
-      }
-    } else {
-      setState(() {
-        _remindersEnabled = false;
-      });
-      NotificationService().cancelAllNotifications();
+    final timeString = prefs.getString('notificationTime');
+    if (timeString != null) {
+      final timeParts = timeString.split(':');
+      _notificationTime = TimeOfDay(
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
+      );
     }
-    _saveReminderSettings();
+    final notificationsEnabled = await NotificationService.instance.areNotificationsEnabled();
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = notificationsEnabled;
+    });
   }
 
-  Future<void> _selectReminderTime(BuildContext context) async {
+  Future<void> _selectNotificationTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _reminderTime,
+      initialTime: _notificationTime,
     );
-    if (picked != null && picked != _reminderTime) {
-      setState(() {
-        _reminderTime = picked;
-      });
-      if (_remindersEnabled) {
-        NotificationService().scheduleDailyReminder(_reminderTime);
-      }
-      _saveReminderSettings();
+    if (picked == null || picked == _notificationTime) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('notificationTime', '${picked.hour}:${picked.minute}');
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificationTime = picked;
+    });
+    if (_notificationsEnabled) {
+      await NotificationService.instance.scheduleDailyReminder(_notificationTime);
     }
   }
 
-  Future<void> _exportData(BuildContext context) async {
-    final workLog = Provider.of<WorkLog>(context, listen: false);
-    final List<List<dynamic>> rows = [];
-    rows.add(['Date', 'Status']);
-    workLog.log.forEach((date, status) {
-      rows.add([date.toIso8601String(), status.toString().split('.').last]);
-    });
-
-    final String csv = const ListToCsvConverter().convert(rows);
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final String path = '${directory.path}/work_log.csv';
-    final File file = File(path);
-    await file.writeAsString(csv);
-
-    await Share.shareXFiles([XFile(path)], text: 'Work Log Data');
-  }
-
-  Future<void> _showResetConfirmationDialog() async {
-    return showDialog<void>(
+  void _showClearLogDialog() {
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Reset Data?'),
-          content: const SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to reset all your work log data?'),
-                Text('This action cannot be undone.'),
-              ],
-            ),
-          ),
+          title: const Text('Clear Work Log?'),
+          content: const Text(
+              'Are you sure you want to delete all your work log data? This action cannot be undone.'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -137,9 +77,9 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              child: const Text('Reset'),
+              child: const Text('Clear'),
               onPressed: () {
-                _resetData();
+                Provider.of<WorkLog>(context, listen: false).clearLog();
                 Navigator.of(context).pop();
               },
             ),
@@ -149,139 +89,115 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _resetData() {
-    final workLog = Provider.of<WorkLog>(context, listen: false);
-    workLog.clearLog();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoadingPage()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
-        automaticallyImplyLeading: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Theme',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              Consumer<ThemeProvider>(
-                builder: (context, themeProvider, child) {
-                  return Column(
-                    children: [
-                      RadioListTile<ThemeMode>(
-                        title: const Text('Light'),
-                        value: ThemeMode.light,
-                        groupValue: themeProvider.themeMode,
-                        onChanged: (ThemeMode? value) {
-                          if (value != null) {
-                            themeProvider.setThemeMode(value);
-                          }
-                        },
-                      ),
-                      RadioListTile<ThemeMode>(
-                        title: const Text('Dark'),
-                        value: ThemeMode.dark,
-                        groupValue: themeProvider.themeMode,
-                        onChanged: (ThemeMode? value) {
-                          if (value != null) {
-                            themeProvider.setThemeMode(value);
-                          }
-                        },
-                      ),
-                      RadioListTile<ThemeMode>(
-                        title: const Text('System'),
-                        value: ThemeMode.system,
-                        groupValue: themeProvider.themeMode,
-                        onChanged: (ThemeMode? value) {
-                          if (value != null) {
-                            themeProvider.setThemeMode(value);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const Divider(),
-              Text(
-                'Notifications',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Daily Reminders'),
-                subtitle: const Text('Remind you to log your work.'),
-                value: _remindersEnabled,
-                onChanged: _onRemindersChanged,
-              ),
-              ListTile(
-                title: const Text('Reminder Time'),
-                subtitle: Text(_reminderTime.format(context)),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () => _selectReminderTime(context),
-                enabled: _remindersEnabled && _notificationsAllowed,
-              ),
-              ListTile(
-                title: const Text('Test Notification'),
-                subtitle: const Text('Show a sample reminder notification.'),
-                trailing: const Icon(Icons.notification_important),
-                onTap: () async {
-                  await NotificationService().requestPermissions();
-                  NotificationService().showTestNotification();
-                },
-                enabled: _notificationsAllowed,
-              ),
-              const Divider(),
-              Text(
-                'Data',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Export Data'),
-                subtitle: const Text('Export your work log as a CSV file.'),
-                trailing: const Icon(Icons.download),
-                onTap: () => _exportData(context),
-              ),
-              ListTile(
-                title: const Text('Reset Data'),
-                subtitle: const Text('Deletes all your work log data.'),
-                trailing: const Icon(Icons.delete_forever),
-                onTap: _showResetConfirmationDialog,
-              ),
-              const Divider(),
-              Text(
-                'Preferences',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              Consumer<ThemeProvider>(
-                builder: (context, themeProvider, child) {
-                  return SwitchListTile(
-                    title: const Text('Haptic Feedback'),
-                    subtitle: const Text('Enable subtle vibrations on tap.'),
-                    value: themeProvider.hapticFeedbackEnabled,
-                    onChanged: (bool value) {
-                      themeProvider.setHapticFeedback(value);
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
+      ),
+      body: ListView(
+        children: [
+          ListTile(
+            title: const Text('Export to CSV'),
+            leading: const Icon(Icons.share),
+            onTap: () async {
+              final workLog = Provider.of<WorkLog>(context, listen: false);
+              String csv = 'Date,Status\n';
+              workLog.log.forEach((date, status) {
+                csv += '${date.toIso8601String().substring(0, 10)},${status.name}\n';
+              });
+
+              debugPrint("--- CSV EXPORT ---");
+              debugPrint(csv);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('CSV content printed to debug console.')),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Clear Work Log'),
+            leading: const Icon(Icons.delete_forever),
+            onTap: _showClearLogDialog,
+          ),
+          SwitchListTile(
+            title: const Text('Dark Mode'),
+            value: themeProvider.themeMode == ThemeMode.dark,
+            onChanged: (value) {
+              themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+            },
+            secondary: const Icon(Icons.dark_mode),
+          ),
+          SwitchListTile(
+            title: const Text('Haptic Feedback'),
+            value: themeProvider.hapticFeedbackEnabled,
+            onChanged: (value) {
+              themeProvider.setHapticFeedback(value);
+            },
+            secondary: const Icon(Icons.vibration),
+          ),
+          SwitchListTile(
+            title: const Text('Enable Daily Reminders'),
+            value: _notificationsEnabled,
+            onChanged: (bool value) async {
+              if (value) {
+                bool standardGranted = await NotificationService.instance.requestStandardPermissions();
+                if (!mounted) return;
+                if (standardGranted) {
+                  bool exactAlarmGranted = await NotificationService.instance.requestExactAlarmPermission();
+                  if (!mounted) return;
+                  if (exactAlarmGranted) {
+                    await NotificationService.instance.scheduleDailyReminder(_notificationTime);
+                    if (!mounted) return;
+                    setState(() {
+                      _notificationsEnabled = true;
+                    });
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'Notification permissions are required for reminders.')),
+                  );
+                }
+              } else {
+                await NotificationService.instance.cancelAllNotifications();
+                if (!mounted) return;
+                setState(() {
+                  _notificationsEnabled = false;
+                });
+              }
+            },
+            secondary: const Icon(Icons.notifications_active),
+          ),
+          ListTile(
+            title: const Text('Notification Time'),
+            subtitle: Text(_notificationTime.format(context)),
+            leading: const Icon(Icons.notifications),
+            onTap: () => _selectNotificationTime(context),
+            enabled: _notificationsEnabled,
+          ),
+          ListTile(
+            title: const Text('Test Notification'),
+            subtitle: const Text('Send a notification immediately'),
+            leading: const Icon(Icons.notification_important),
+            onTap: () {
+              NotificationService.instance.showTestNotification();
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Office attendance must be at least 60% to meet your goal.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }

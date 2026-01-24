@@ -1,133 +1,332 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/attendance_card.dart';
 import 'package:myapp/loading_page.dart';
 import 'package:myapp/notifications.dart';
-import 'package:myapp/settings_page.dart';
+import 'package:myapp/settings_page_new.dart';
+import 'package:myapp/status_summary.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // Import for Firebase Crashlytics
-import 'package:firebase_analytics/firebase_analytics.dart'; // Import for Firebase Analytics
-import 'dart:async'; // Import for runZonedGuarded
-import 'dart:ui'; // Add this import
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'dart:async';
+import 'dart:ui';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 
-// Main function
-void main() async {
+void main() {
+  // Ensure Flutter bindings are initialized first.
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await NotificationService()
-      .init(onDidReceiveBackgroundNotificationResponse: notificationTapBackground);
-  await NotificationService().requestPermissions();
 
-  runZonedGuarded(() async {
-    // Initialize Crashlytics to catch Flutter errors
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  // Run the root widget that handles initialization.
+  runApp(const AppShell());
+}
 
-    // Initialize Crashlytics to catch platform errors
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
+// This is the new root widget. It handles the app's initialization phase.
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
 
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (context) => WorkLog().._loadLog()),
-          ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        ],
-        child: const WorkTrackerApp(),
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  late final Future<void> _initializationFuture;
+  final WorkLog _workLog = WorkLog();
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the asynchronous initialization.
+    _initializationFuture = _initializeApp();
+  }
+
+  // This function contains all the asynchronous startup logic.
+  Future<void> _initializeApp() async {
+    try {
+      // Use a guarded zone to catch all errors during initialization.
+      await runZonedGuarded(() async {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+
+        // Initialize notifications.
+        await NotificationService.instance.init(
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+
+        // Load the persisted work log data.
+        await _workLog.loadLog();
+
+        // Set up global error handlers now that Firebase is initialized.
+        FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+        PlatformDispatcher.instance.onError = (error, stack) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+          return true;
+        };
+      }, (error, stack) {
+        // Catch errors from within the guarded zone (e.g., Firebase init fails).
+        developer.log(
+          'Error during initialization phase',
+          error: error,
+          stackTrace: stack,
+          name: 'com.example.myapp.initialization',
+        );
+        // Re-throw the error to be caught by the FutureBuilder.
+        throw error;
+      });
+    } catch (e, stack) {
+      developer.log(
+        'Caught an error during _initializeApp',
+        error: e,
+        stackTrace: stack,
+        name: 'com.example.myapp.initialization',
+      );
+      // Ensure the FutureBuilder knows about the error.
+      rethrow;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Use a FutureBuilder to show a loading screen during initialization.
+    return FutureBuilder(
+      future: _initializationFuture,
+      builder: (context, snapshot) {
+        // While loading, show the splash screen.
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const MaterialApp(
+            home: LoadingPage(),
+            debugShowCheckedModeBanner: false,
+          );
+        }
+
+        // If an error occurred, show a simple error screen.
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text(
+                  'Initialization Failed: ${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            debugShowCheckedModeBanner: false,
+          );
+        }
+
+        // Once initialization is complete, build the main app.
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: _workLog),
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ],
+          child: const WorkTrackerApp(),
+        );
+      },
+    );
+  }
+}
+
+// The main application widget, built only after initialization is complete.
+class WorkTrackerApp extends StatefulWidget {
+  const WorkTrackerApp({super.key});
+
+  @override
+  State<WorkTrackerApp> createState() => _WorkTrackerAppState();
+}
+
+class _WorkTrackerAppState extends State<WorkTrackerApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    final analytics = FirebaseAnalytics.instance;
+    final observer = FirebaseAnalyticsObserver(analytics: analytics);
+
+    _router = GoRouter(
+      initialLocation: '/',
+      observers: [observer],
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return ScaffoldWithNavBar(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [GoRoute(path: '/', pageBuilder: (context, state) => const NoTransitionPage(child: CalendarPage()))],
+            ),
+            StatefulShellBranch(
+              routes: [GoRoute(path: '/settings', pageBuilder: (context, state) => const NoTransitionPage(child: SettingsPageNew()))],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData lightTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF10b981),
+        brightness: Brightness.light,
+        primary: const Color(0xFF10b981),
+        onPrimary: Colors.white,
+        background: const Color(0xFFf8fafc),
+        surface: Colors.white,
+      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
+        displayLarge: const TextStyle(fontWeight: FontWeight.bold),
+        titleLarge: const TextStyle(fontWeight: FontWeight.w600),
+        headlineSmall: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      scaffoldBackgroundColor: const Color(0xFFf8fafc),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF10b981),
+        unselectedItemColor: Colors.grey.shade600,
       ),
     );
-  }, (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  });
+
+    final ThemeData darkTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF238636),
+        brightness: Brightness.dark,
+        background: const Color(0xFF0D1117),
+        surface: const Color(0xFF161B22),
+        onSurface: const Color(0xFFC9D1D9),
+        primary: const Color(0xFF238636),
+        onPrimary: Colors.white,
+      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        displayLarge: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
+        titleLarge: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFC9D1D9)),
+        headlineSmall: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
+        bodyMedium: const TextStyle(color: Color(0xFFC9D1D9)),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF0D1117),
+       bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF161B22),
+        selectedItemColor: const Color(0xFF238636),
+        unselectedItemColor: Colors.grey.shade600,
+      ),
+    );
+
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp.router(
+          title: 'AreUWFO',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.themeMode,
+          routerConfig: _router,
+          debugShowCheckedModeBanner: false,
+        );
+      },
+    );
+  }
 }
+
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
+  developer.log(
+    'Notification tapped with action: ${notificationResponse.actionId}',
+    name: 'com.example.myapp.background',
+    level: 800
+  );
+
   final actionId = notificationResponse.actionId;
   if (actionId != null) {
     WorkStatus? status;
-    String? toastMessage;
 
     if (actionId == 'office') {
       status = WorkStatus.office;
-      toastMessage = 'Working from Office today';
     } else if (actionId == 'home') {
       status = WorkStatus.home;
-      toastMessage = 'Working from Home today';
     } else if (actionId == 'leave') {
       status = WorkStatus.leave;
-      toastMessage = 'On leave today';
     }
 
     if (status != null) {
-      _updateStatusInBackground(status);
-      if (toastMessage != null) {
-        Fluttertoast.showToast(
-          msg: toastMessage,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.black,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-      }
+      developer.log(
+        'Status determined: $status. Calling update function.',
+        name: 'com.example.myapp.background',
+        level: 800
+      );
+      updateStatusInBackground(status);
     }
   }
 }
 
-Future<void> _updateStatusInBackground(WorkStatus status) async {
-  final prefs = await SharedPreferences.getInstance();
-  final today = DateUtils.dateOnly(DateTime.now());
-  final String? logString = prefs.getString('workLog');
-  Map<String, int> workLog = {};
-
-  if (logString != null) {
-    final Map<String, dynamic> decodedLog = json.decode(logString);
-    workLog = decodedLog.map((key, value) => MapEntry(key, value as int));
+Future<void> updateStatusInBackground(WorkStatus status) async {
+  try {
+    developer.log('Background update started for status: $status', name: 'com.example.myapp.background');
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    final workLog = await WorkLogStorage.readWorkLog();
+    final today = DateUtils.dateOnly(DateTime.now());
+    workLog[today] = status;
+    await WorkLogStorage.writeWorkLog(workLog);
+    developer.log('Background update successful.', name: 'com.example.myapp.background');
+  } catch (e, s) {
+    developer.log('FATAL ERROR in updateStatusInBackground: $e', name: 'com.example.myapp.background', error: e, stackTrace: s, level: 1200);
   }
-
-  workLog[today.toIso8601String()] = status.index;
-  await prefs.setString('workLog', json.encode(workLog));
 }
 
-final _router = GoRouter(
-  routes: [
-    GoRoute(path: '/', builder: (context, state) => const HomePageWrapper()),
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsPage(),
-    ),
-  ],
-  observers: [WorkTrackerApp.observer], // Moved here from MaterialApp.router
-);
-
-// Work Status Enum
 enum WorkStatus { none, office, home, leave }
 
-// WorkLog Provider
+class WorkLogStorage {
+  static const _workLogKey = 'workLog';
+
+  static Future<Map<DateTime, WorkStatus>> readWorkLog() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final logString = prefs.getString(_workLogKey);
+      if (logString == null) return {};
+      return await compute(_parseAndDecodeWorkLog, logString);
+    } catch (e) {
+      developer.log('Error reading work log: $e', name: 'com.example.myapp.storage');
+      return {};
+    }
+  }
+
+  static Future<void> writeWorkLog(Map<DateTime, WorkStatus> log) async {
+    final prefs = await SharedPreferences.getInstance();
+    final Map<String, int> encodedLog = log.map(
+      (key, value) => MapEntry(key.toIso8601String(), value.index),
+    );
+    await prefs.setString(_workLogKey, json.encode(encodedLog));
+  }
+}
+
+Map<DateTime, WorkStatus> _parseAndDecodeWorkLog(String logString) {
+  final Map<String, dynamic> decodedLog = json.decode(logString);
+  return decodedLog.map((key, value) {
+    return MapEntry(DateTime.parse(key), WorkStatus.values[value as int]);
+  });
+}
+
 class WorkLog with ChangeNotifier {
   final Map<DateTime, WorkStatus> _log = {};
-  bool _isLoading = true;
 
   Map<DateTime, WorkStatus> get log => _log;
-  bool get isLoading => _isLoading;
 
-  void updateStatus(DateTime day, WorkStatus status) {
+  Future<void> updateStatus(DateTime day, WorkStatus status) async {
     _log[day] = status;
-    _saveLog();
+    await _saveLog();
     notifyListeners();
   }
 
@@ -136,60 +335,33 @@ class WorkLog with ChangeNotifier {
   }
 
   Future<void> _saveLog() async {
-    final prefs = await SharedPreferences.getInstance();
-    final Map<String, int> encodedLog = _log.map(
-      (key, value) => MapEntry(key.toIso8601String(), value.index),
-    );
-    await prefs.setString('workLog', json.encode(encodedLog));
+    await WorkLogStorage.writeWorkLog(_log);
   }
 
-  Future<void> _loadLog() async {
-    // Simulate a network delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    final prefs = await SharedPreferences.getInstance();
-    final String? logString = prefs.getString('workLog');
-    if (logString != null) {
-      final Map<String, dynamic> decodedLog = json.decode(logString);
+  Future<void> loadLog() async {
+    try {
+      developer.log("WorkLog: Starting to load log from disk.", name: "com.example.myapp.worklog");
       _log.clear();
-      decodedLog.forEach((key, value) {
-        _log[DateTime.parse(key)] = WorkStatus.values[value];
-      });
-    } else {
-      // Generate dummy data if no log exists
-      _generateDummyData();
+      _log.addAll(await WorkLogStorage.readWorkLog());
+       developer.log("WorkLog: Successfully loaded and parsed log.", name: "com.example.myapp.worklog");
+    } catch (e, stack) {
+       developer.log(
+        "WorkLog: Error loading log, clearing data.",
+        name: "com.example.myapp.worklog",
+        error: e,
+        stackTrace: stack,
+        level: 1000,
+      );
+      // Don't record to crashlytics if it's not initialized
+      // FirebaseCrashlytics.instance.recordError(e, stack);
+      _log.clear();
+      await _saveLog();
+    } finally {
+      developer.log("WorkLog: Notifying listeners of final state.", name: "com.example.myapp.worklog");
+      // No need to notify here, FutureBuilder handles the UI transition
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
-  void _generateDummyData() {
-    final random = Random();
-    final today = DateUtils.dateOnly(DateTime.now());
-
-    for (int monthIndex = 0; monthIndex <= 6; monthIndex++) {
-      final month = DateTime(today.year, today.month - monthIndex, 1);
-      final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
-
-      for (int dayIndex = 1; dayIndex <= daysInMonth; dayIndex++) {
-        final day = DateTime(month.year, month.month, dayIndex);
-
-        // Skip future dates and weekends
-        if (day.isAfter(today) ||
-            day.weekday == DateTime.saturday ||
-            day.weekday == DateTime.sunday) {
-          continue;
-        }
-
-        // Generate a random status (excluding 'none')
-        final status = WorkStatus.values[random.nextInt(3) + 1];
-        _log[day] = status;
-      }
-    }
-    _saveLog();
-  }
-
-  // Calculate the in-office attendance percentage for a given month
   double officeAttendancePercentage(DateTime month) {
     final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
     int officeDays = 0;
@@ -220,243 +392,100 @@ class WorkLog with ChangeNotifier {
   }
 }
 
-// Main App Widget
-class WorkTrackerApp extends StatelessWidget {
-  const WorkTrackerApp({super.key});
+class ScaffoldWithNavBar extends StatelessWidget {
+  const ScaffoldWithNavBar({super.key, required this.navigationShell});
 
-  // Initialize Firebase Analytics
-  static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  static final FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
+  final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
-    const Color primarySeedColor = Colors.deepPurple;
-    const TextTheme appTextTheme = TextTheme(
-      displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.bold),
-      titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-      bodyMedium: TextStyle(fontSize: 14),
-    );
-
-    final ThemeData lightTheme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.light,
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: navigationShell.currentIndex,
+        onTap: (index) {
+          HapticFeedback.selectionClick();
+          navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+        ],
       ),
-      textTheme: appTextTheme,
-    );
-
-    final ThemeData darkTheme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
-      ),
-      textTheme: appTextTheme,
-    );
-
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp.router(
-          title: 'AreUWFO',
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          themeMode: themeProvider.themeMode,
-          routerConfig: _router,
-          // Removed navigatorObservers from here
-        );
-      },
     );
   }
 }
 
-class HomePageWrapper extends StatelessWidget {
-  const HomePageWrapper({super.key});
+class CalendarPage extends StatefulWidget {
+  const CalendarPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<WorkLog>(
-      builder: (context, workLog, child) {
-        return workLog.isLoading ? const LoadingPage() : const MyHomePage();
-      },
-    );
-  }
+  State<CalendarPage> createState() => _CalendarPageState();
 }
 
-// Home Page Widget
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClientMixin {
   late DateTime _displayedMonth;
-  late AnimationController _swipeHintController;
-  late Animation<double> _swipeHintOpacityAnimation;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     _displayedMonth = DateUtils.dateOnly(DateTime.now());
-
-    _swipeHintController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _swipeHintOpacityAnimation = CurvedAnimation(
-      parent: _swipeHintController,
-      curve: Curves.easeInOut,
-    );
-
-    _triggerSwipeHint();
-  }
-
-  @override
-  void dispose() {
-    _swipeHintController.dispose();
-    super.dispose();
-  }
-
-  void _triggerSwipeHint() async {
-    if (_swipeHintController.isAnimating) return;
-    _swipeHintController.forward();
-    await Future.delayed(const Duration(milliseconds: 1000));
-    _swipeHintController.reverse();
   }
 
   void _changeMonth(int monthIncrement) {
     setState(() {
-      _displayedMonth = DateTime(
-        _displayedMonth.year,
-        _displayedMonth.month + monthIncrement,
-        1,
-      );
+      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month + monthIncrement, 1);
     });
-    _triggerSwipeHint(); // Call _triggerSwipeHint() here
-  }
-
-  void _setMonth(DateTime month) {
-    setState(() {
-      _displayedMonth = month;
-    });
-  }
-
-  void _showLegendDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Color Legend'),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              LegendItem(status: WorkStatus.office),
-              SizedBox(height: 8),
-              LegendItem(status: WorkStatus.home),
-              SizedBox(height: 8),
-              LegendItem(status: WorkStatus.leave),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculate navigation limits (for arrow onPressed, though arrows are now hints)
-    final now = DateTime.now();
-    final sixMonthsAgo = DateTime(now.year, now.month - 6, 1);
-    final sixMonthsHence = DateTime(now.year, now.month + 6, 1);
-    final canGoBack = _displayedMonth.isAfter(sixMonthsAgo);
-    final canGoForward = _displayedMonth.isBefore(sixMonthsHence);
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          DateFormat.yMMMM().format(_displayedMonth),
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
-            tooltip: 'Settings',
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: _showLegendDialog,
-            tooltip: 'Show Legend',
-          ),
-        ],
-      ),
-      body: Stack(
+    super.build(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 380, // Fixed height for the calendar
-                  width: double.infinity, // Full width
-                  child: CalendarGrid(
-                    displayedMonth: _displayedMonth,
-                    onMonthSwiped: _changeMonth, // Corrected parameter name
-                  ),
-                ),
-                const SizedBox(height: 24),
-                AttendanceTracker(displayedMonth: _displayedMonth),
-                const SizedBox(height: 16),
-                MonthlyAttendanceIndicator(onMonthSelected: _setMonth),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 0,
-            top: MediaQuery.of(context).size.height * 0.25,
-            bottom: MediaQuery.of(context).size.height * 0.25,
-            child: FadeTransition(
-              opacity: _swipeHintOpacityAnimation,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios, size: 30),
-                onPressed: canGoBack ? () => _changeMonth(-1) : null,
-                color: Theme.of(context).colorScheme.onSurface,
-                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            top: MediaQuery.of(context).size.height * 0.25,
-            bottom: MediaQuery.of(context).size.height * 0.25,
-            child: FadeTransition(
-              opacity: _swipeHintOpacityAnimation,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 30),
-                onPressed: canGoForward ? () => _changeMonth(1) : null,
-                color: Theme.of(context).colorScheme.onSurface,
-                disabledColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-              ),
-            ),
-          ),
+          const SizedBox(height: 40),
+          _buildHeader(context),
+          const SizedBox(height: 16),
+          AttendanceCard(displayedMonth: _displayedMonth),
+          const SizedBox(height: 16),
+          CalendarGrid(displayedMonth: _displayedMonth, onMonthSwiped: _changeMonth),
+          const SizedBox(height: 16),
+          StatusSummary(displayedMonth: _displayedMonth),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              DateFormat.yMMMM().format(_displayedMonth),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => _changeMonth(-1)),
+            IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => _changeMonth(1)),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
-// Calendar Grid Widget
 class CalendarGrid extends StatefulWidget {
   final DateTime displayedMonth;
   final Function(int) onMonthSwiped;
@@ -474,12 +503,10 @@ class CalendarGrid extends StatefulWidget {
 class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Offset> _offsetAnimation;
-  late DateTime _previousDisplayedMonth; // To track direction of month change
 
   @override
   void initState() {
     super.initState();
-    _previousDisplayedMonth = widget.displayedMonth;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -493,25 +520,21 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
   void didUpdateWidget(covariant CalendarGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.displayedMonth != oldWidget.displayedMonth) {
-      // Determine the direction of the month change
       final int monthDifference = widget.displayedMonth.month - oldWidget.displayedMonth.month +
           (widget.displayedMonth.year - oldWidget.displayedMonth.year) * 12;
 
-      // Reset animation controller
       _animationController.reset();
 
-      // Set up the new tween based on swipe direction
-      if (monthDifference > 0) { // Swiped left, new month slides in from right
+      if (monthDifference > 0) {
         _offsetAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
         );
-      } else { // Swiped right, new month slides in from left
+      } else {
         _offsetAnimation = Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
         );
       }
       _animationController.forward();
-      _previousDisplayedMonth = widget.displayedMonth; // Update previous month
     }
   }
 
@@ -539,10 +562,8 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! > 0) {
-          // Swiped right (positive velocity) -> go to previous month
           widget.onMonthSwiped(-1);
         } else if (details.primaryVelocity! < 0) {
-          // Swiped left (negative velocity) -> go to next month
           widget.onMonthSwiped(1);
         }
       },
@@ -558,51 +579,46 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
           children: [
             const WeekdayHeader(),
             const SizedBox(height: 8),
-            Expanded(
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: daysInMonth + firstWeekday - 1,
-                itemBuilder: (context, index) {
-                  if (index < firstWeekday - 1) {
-                    return const SizedBox.shrink(); // Empty space before the 1st day
-                  }
-                  final dayNumber = index - (firstWeekday - 1) + 1;
-                  final date = DateTime(
-                    widget.displayedMonth.year,
-                    widget.displayedMonth.month,
-                    dayNumber,
-                  );
-                  final status = workLog.getStatus(date);
-                  final isWeekend =
-                      date.weekday == DateTime.saturday ||
-                      date.weekday == DateTime.sunday;
-                  final isCurrentDay =
-                      DateUtils.dateOnly(date) == DateUtils.dateOnly(DateTime.now());
-
-                  return DayCard(
-                    date: date,
-                    status: status,
-                    isWeekend: isWeekend,
-                    isCurrentDay: isCurrentDay,
-                    onTap: () {
-                      if (!isWeekend) {
-                        if (themeProvider.hapticFeedbackEnabled) {
-                          HapticFeedback.mediumImpact();
-                        }
-                        final nextStatus = WorkStatus
-                            .values[(status.index + 1) % WorkStatus.values.length];
-                        workLog.updateStatus(date, nextStatus);
-                      }
-                    },
-                  );
-                },
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                childAspectRatio: 1.0,
               ),
+              itemCount: daysInMonth + firstWeekday -1,
+              itemBuilder: (context, index) {
+                final dayIndex = index - (firstWeekday -1);
+                if (dayIndex < 0) {
+                  return const SizedBox.shrink();
+                }
+
+                final date = DateTime(
+                  widget.displayedMonth.year,
+                  widget.displayedMonth.month,
+                  dayIndex + 1,
+                );
+                final status = workLog.getStatus(date);
+                final isWeekend =
+                    date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+                final isCurrentDay =
+                    DateUtils.dateOnly(date) == DateUtils.dateOnly(DateTime.now());
+
+                return DayCard(
+                  date: date,
+                  status: status,
+                  isWeekend: isWeekend,
+                  isCurrentDay: isCurrentDay,
+                  onTap: () async {
+                    if (!isWeekend) {
+                      HapticFeedback.mediumImpact();
+                      final nextStatus = WorkStatus
+                          .values[(status.index + 1) % WorkStatus.values.length];
+                      await workLog.updateStatus(date, nextStatus);
+                    }
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -611,31 +627,28 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
   }
 }
 
-// Weekday Header Widget
 class WeekdayHeader extends StatelessWidget {
   const WeekdayHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     final shortWeekdays = DateFormat.E().dateSymbols.SHORTWEEKDAYS;
-    // Reorder to start with Monday
     final orderedWeekdays = [...shortWeekdays.sublist(1), shortWeekdays[0]];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: orderedWeekdays.map((day) {
-        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold)); // Reverted text style
+        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold));
       }).toList(),
     );
   }
 }
 
-// Day Card Widget
 class DayCard extends StatelessWidget {
   final DateTime date;
   final WorkStatus status;
   final bool isWeekend;
-  final bool isCurrentDay; // Added isCurrentDay parameter
+  final bool isCurrentDay;
   final VoidCallback? onTap;
 
   const DayCard({
@@ -643,189 +656,84 @@ class DayCard extends StatelessWidget {
     required this.date,
     required this.status,
     required this.isWeekend,
-    required this.isCurrentDay, // Required isCurrentDay parameter
+    required this.isCurrentDay,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    Color? cardColor;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    Color? bgColor;
+    Color? textColor;
+    BoxBorder? border;
+
+    if (isCurrentDay) {
+      border = Border.all(color: Colors.blue, width: 2);
+    }
+
     if (!isWeekend) {
-      switch (status) {
-        case WorkStatus.office:
-          cardColor = Colors.green.shade400;
-          break;
-        case WorkStatus.home:
-          cardColor = Colors.red.shade400;
-          break;
-        case WorkStatus.leave:
-          cardColor = Colors.yellow.shade600;
-          break;
-        case WorkStatus.none:
-          break;
+      if (isDarkMode) {
+        switch (status) {
+          case WorkStatus.office:
+            bgColor = const Color(0xFF238636);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.home:
+            bgColor = const Color(0xFFB94545);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.leave:
+            bgColor = const Color(0xFFfbbf24);
+            textColor = Colors.white;
+            break;
+          case WorkStatus.none:
+            bgColor = const Color(0xFF22272E);
+            break;
+        }
+      } else {
+        switch (status) {
+          case WorkStatus.office:
+            bgColor = const Color(0xFFd1fae5);
+            textColor = const Color(0xFF065f46);
+            break;
+          case WorkStatus.home:
+            bgColor = const Color(0xFFfee2e2);
+            textColor = const Color(0xFF991b1b);
+            break;
+          case WorkStatus.leave:
+            bgColor = const Color(0xFFfef3c7);
+            textColor = const Color(0xFF92400e);
+            break;
+          case WorkStatus.none:
+            break;
+        }
       }
+    } else {
+       border = Border.all(color: Colors.transparent);
+       if (isDarkMode) {
+        bgColor = const Color(0xFF0D1117);
+       }
     }
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        margin: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: cardColor, // Reverted color logic
-          borderRadius:
-              isCurrentDay ? BorderRadius.circular(12) : BorderRadius.circular(8),
-          border: isCurrentDay
-              ? Border.all(
-                  color: Theme.of(context).colorScheme.primary, width: 2.0)
-              : Border.all(
-                  color: isWeekend ? Colors.grey.shade400 : Colors.transparent,
-                ),
+          color: bgColor,
+          borderRadius: BorderRadius.circular(100),
+          border: border,
         ),
         child: Center(
           child: Text(
             date.day.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: status != WorkStatus.none
-                  ? Colors.white
-                  : null, // Reverted text color logic
+              color: textColor ?? (isWeekend ? Colors.grey.shade600 : (isDarkMode ? Colors.grey.shade400 : null)),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-// Attendance Tracker Widget
-class AttendanceTracker extends StatelessWidget {
-  final DateTime displayedMonth;
-  const AttendanceTracker({super.key, required this.displayedMonth});
-
-  @override
-  Widget build(BuildContext context) {
-    final workLog = Provider.of<WorkLog>(context);
-    final percentage = workLog.officeAttendancePercentage(displayedMonth);
-    final progressColor = percentage < 60 ? Colors.red : Colors.green;
-
-    return Column(
-      children: [
-        Text(
-          'In-Office Attendance: ${percentage.toStringAsFixed(1)}%',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: percentage / 100,
-          minHeight: 12,
-          borderRadius: BorderRadius.circular(6),
-          backgroundColor: Colors.grey.shade300,
-          valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-        ),
-      ],
-    );
-  }
-}
-
-// Monthly Attendance Indicator Widget
-class MonthlyAttendanceIndicator extends StatelessWidget {
-  final Function(DateTime) onMonthSelected;
-  const MonthlyAttendanceIndicator({super.key, required this.onMonthSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final workLog = Provider.of<WorkLog>(context);
-    final today = DateUtils.dateOnly(DateTime.now());
-
-    // Generate the list of the previous 6 months and reverse it for chronological order
-    final pastMonths = List.generate(6, (index) {
-      return DateTime(today.year, today.month - (index + 1), 1);
-    }).reversed.toList();
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: pastMonths.map((month) {
-            final percentage = workLog.officeAttendancePercentage(month);
-            final color = percentage < 60 ? Colors.red : Colors.green;
-            return _buildIndicator(month, color, false);
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
-        _buildIndicator(
-          today,
-          workLog.officeAttendancePercentage(today) < 60
-              ? Colors.red
-              : Colors.green,
-          true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIndicator(DateTime month, Color color, bool isCurrent) {
-    return GestureDetector(
-      onTap: () => onMonthSelected(month),
-      child: Column(
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            DateFormat.MMM().format(month),
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
-          if (isCurrent)
-            const Text('(Current Month)', style: TextStyle(fontSize: 10)),
-        ],
-      ),
-    );
-  }
-}
-
-// Legend Item Widget
-class LegendItem extends StatelessWidget {
-  final WorkStatus status;
-  const LegendItem({super.key, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    String text;
-    switch (status) {
-      case WorkStatus.office:
-        color = Colors.green.shade400;
-        text = 'Office';
-        break;
-      case WorkStatus.home:
-        color = Colors.red.shade400;
-        text = 'Home';
-        break;
-      case WorkStatus.leave:
-        color = Colors.yellow.shade600;
-        text = 'Leave';
-        break;
-      default:
-        return const SizedBox.shrink();
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(text),
-      ],
     );
   }
 }

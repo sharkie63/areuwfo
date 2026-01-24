@@ -1,3 +1,4 @@
+
 {
   "project_info": {
     "project_number": "15697676186",
@@ -7,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:15697676186:android:a9d018e500beb4fd9c1c23",
+        "mobilesdk_app_id": "1:15697676186:android:af74dce0609cf7cc9c1c23",
         "android_client_info": {
-          "package_name": "com.example.myapp"
+          "package_name": "com.areuwfo.tracker"
         }
       },
       "oauth_client": [],
