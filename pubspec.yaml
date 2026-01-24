@@ -1,7 +1,8 @@
 
+
 name: myapp
-description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+description: "Track your office attendance and work-from-home days effortlessly with AreUWFO."
+publish_to: 'none'
 
 version: 1.0.0+2
 

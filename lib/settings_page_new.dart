@@ -289,6 +289,67 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                 ),
               ],
             ),
+            const _SettingsHeader(title: 'ABOUT'),
+            _SettingsCard(
+              children: [
+                _SettingsTile(
+                  icon: Icons.privacy_tip_outlined,
+                  iconColor: Colors.indigo,
+                  title: 'Privacy Policy',
+                  onTap: () {
+                    // TODO: Replace with actual privacy policy URL
+                    // For now, show a dialog explaining data usage
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Privacy Policy'),
+                        content: const SingleChildScrollView(
+                          child: Text(
+                            'AreUWFO Privacy Summary:\n\n'
+                            '• All your work log data is stored locally on your device\n'
+                            '• We use Firebase Analytics to improve app performance\n'
+                            '• We use Firebase Crashlytics to fix bugs\n'
+                            '• No personal data is shared with third parties\n'
+                            '• You can export or delete your data anytime\n\n'
+                            'Full privacy policy: https://github.com/sharkie63/areuwfo/blob/main/PRIVACY.md',
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                _SettingsTile(
+                  icon: Icons.email_outlined,
+                  iconColor: Colors.teal,
+                  title: 'Contact Support',
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Contact Support'),
+                        content: const Text(
+                          'For support or feedback:\n\n'
+                          'Email: sharathsd63@icloud.com\n'
+                          'GitHub: github.com/sharkie63/areuwfo',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
             if (_version.isNotEmpty)
               Center(
