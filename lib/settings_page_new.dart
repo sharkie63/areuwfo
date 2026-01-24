@@ -335,8 +335,7 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                         title: const Text('Contact Support'),
                         content: const Text(
                           'For support or feedback:\n\n'
-                          'Email: sharathsd63@icloud.com\n'
-                          'GitHub: github.com/sharkie63/areuwfo',
+                          'Email: sharathsd63@icloud.com',
                         ),
                         actions: [
                           TextButton(
