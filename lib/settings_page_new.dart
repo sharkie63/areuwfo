@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
 import 'package:myapp/notifications.dart';
@@ -216,21 +217,6 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                     inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
-                _SettingsTile(
-                  icon: Icons.vibration,
-                  iconColor: Colors.orange,
-                  title: 'Haptic Feedback',
-                  trailing: Switch(
-                    value: themeProvider.hapticFeedbackEnabled,
-                    onChanged: (value) {
-                      themeProvider.setHapticFeedback(value);
-                    },
-                    activeColor: Colors.white,
-                    activeTrackColor: Colors.orange,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
-                  ),
-                ),
               ],
             ),
             const _SettingsHeader(title: 'NOTIFICATIONS'),
@@ -393,7 +379,10 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(title, style: TextStyle(color: effectiveTitleColor)),
       trailing: trailing ?? (onTap != null ? Icon(Icons.arrow_forward_ios, size: 16, color: effectiveTitleColor) : null),
-      onTap: enabled ? onTap : null,
+      onTap: enabled && onTap != null ? () {
+        HapticFeedback.mediumImpact();
+        onTap!();
+      } : null,
       enabled: enabled,
     );
   }

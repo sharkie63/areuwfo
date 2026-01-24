@@ -404,6 +404,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: navigationShell.currentIndex,
         onTap: (index) {
+          HapticFeedback.selectionClick();
           navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
         },
         items: const [
@@ -610,9 +611,7 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
                   isCurrentDay: isCurrentDay,
                   onTap: () async {
                     if (!isWeekend) {
-                      if (themeProvider.hapticFeedbackEnabled) {
-                        HapticFeedback.mediumImpact();
-                      }
+                      HapticFeedback.mediumImpact();
                       final nextStatus = WorkStatus
                           .values[(status.index + 1) % WorkStatus.values.length];
                       await workLog.updateStatus(date, nextStatus);
