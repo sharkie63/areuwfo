@@ -329,13 +329,18 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                   iconColor: Colors.teal,
                   title: 'Contact Support',
                   onTap: () {
+                    // Platform-specific email
+                    final email = Theme.of(context).platform == TargetPlatform.iOS
+                        ? 'studio.boredapps@icloud.com'
+                        : 'studio.boredapps@gmail.com';
+                    
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Contact Support'),
-                        content: const Text(
+                        content: Text(
                           'For support or feedback:\n\n'
-                          'Email: sharathsd63@icloud.com',
+                          'Email: $email',
                         ),
                         actions: [
                           TextButton(
