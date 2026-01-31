@@ -5,14 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/attendance_card.dart';
 import 'package:myapp/loading_page.dart';
-import 'package:myapp/notifications.dart';
 import 'package:myapp/settings_page_new.dart';
 import 'package:myapp/status_summary.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:myapp/services/ad_service.dart';
 import 'dart:convert';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -58,10 +57,8 @@ class _AppShellState extends State<AppShell> {
           options: DefaultFirebaseOptions.currentPlatform,
         );
 
-        // Initialize notifications.
-        await NotificationService.instance.init(
-          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-        );
+        // Initialize Ads
+        await AdService().initialize();
 
         // Load the persisted work log data.
         await _workLog.loadLog();
@@ -241,51 +238,6 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
 }
 
 
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
-  developer.log(
-    'Notification tapped with action: ${notificationResponse.actionId}',
-    name: 'com.example.myapp.background',
-    level: 800
-  );
-
-  final actionId = notificationResponse.actionId;
-  if (actionId != null) {
-    WorkStatus? status;
-
-    if (actionId == 'office') {
-      status = WorkStatus.office;
-    } else if (actionId == 'home') {
-      status = WorkStatus.home;
-    } else if (actionId == 'leave') {
-      status = WorkStatus.leave;
-    }
-
-    if (status != null) {
-      developer.log(
-        'Status determined: $status. Calling update function.',
-        name: 'com.example.myapp.background',
-        level: 800
-      );
-      updateStatusInBackground(status);
-    }
-  }
-}
-
-Future<void> updateStatusInBackground(WorkStatus status) async {
-  try {
-    developer.log('Background update started for status: $status', name: 'com.example.myapp.background');
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    final workLog = await WorkLogStorage.readWorkLog();
-    final today = DateUtils.dateOnly(DateTime.now());
-    workLog[today] = status;
-    await WorkLogStorage.writeWorkLog(workLog);
-    developer.log('Background update successful.', name: 'com.example.myapp.background');
-  } catch (e, s) {
-    developer.log('FATAL ERROR in updateStatusInBackground: $e', name: 'com.example.myapp.background', error: e, stackTrace: s, level: 1200);
-  }
-}
-
 enum WorkStatus { none, office, home, leave }
 
 class WorkLogStorage {
@@ -404,6 +356,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: navigationShell.currentIndex,
         onTap: (index) {
+          if (index == 1 && navigationShell.currentIndex != 1) {
+            AdService().showInterstitialAd();
+          }
           HapticFeedback.selectionClick();
           navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
         },
@@ -436,8 +391,18 @@ class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClie
   }
 
   void _changeMonth(int monthIncrement) {
+    final now = DateTime.now();
+    final minDate = DateTime(now.year, now.month - 6, 1);
+    final maxDate = DateTime(now.year, now.month + 6, 1);
+    
+    final newMonth = DateTime(_displayedMonth.year, _displayedMonth.month + monthIncrement, 1);
+
+    if (newMonth.isBefore(minDate) || newMonth.isAfter(maxDate)) {
+      return;
+    }
+
     setState(() {
-      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month + monthIncrement, 1);
+      _displayedMonth = newMonth;
     });
   }
 
@@ -463,6 +428,13 @@ class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClie
   }
 
   Widget _buildHeader(BuildContext context) {
+    final now = DateTime.now();
+    final minDate = DateTime(now.year, now.month - 6, 1);
+    final maxDate = DateTime(now.year, now.month + 6, 1);
+
+    final canGoBack = _displayedMonth.isAfter(minDate);
+    final canGoForward = _displayedMonth.isBefore(maxDate);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -477,8 +449,14 @@ class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClie
         ),
         Row(
           children: [
-            IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => _changeMonth(-1)),
-            IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => _changeMonth(1)),
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: canGoBack ? () => _changeMonth(-1) : null,
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: canGoForward ? () => _changeMonth(1) : null,
+            ),
           ],
         ),
       ],
@@ -547,7 +525,6 @@ class _CalendarGridState extends State<CalendarGrid> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final workLog = Provider.of<WorkLog>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final firstDayOfMonth = DateTime(
       widget.displayedMonth.year,
       widget.displayedMonth.month,

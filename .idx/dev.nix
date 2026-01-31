@@ -8,6 +8,7 @@
     pkgs.jdk21
     pkgs.unzip
     pkgs.cmake
+    pkgs.nodejs_20
   ];
   # Sets environment variables in the workspace
   env = {};

@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:myapp/main.dart';
 import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:myapp/services/ad_service.dart';
 
 class SettingsPageNew extends StatefulWidget {
   const SettingsPageNew({super.key});
@@ -72,6 +71,33 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
   }
 
   Future<void> _exportToCsv() async {
+    // Show confirmation dialog for Ad
+    final shouldWatchAd = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Export Data'),
+        content: const Text('Watch a short ad to support the app and export your data?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Watch Ad & Export'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldWatchAd == true) {
+      await AdService().showRewardedAd(onRewardEarned: () async {
+        await _performExport();
+      });
+    }
+  }
+
+  Future<void> _performExport() async {
     final workLog = Provider.of<WorkLog>(context, listen: false);
     String csv = 'Date,Status\n';
     workLog.log.forEach((date, status) {
@@ -93,7 +119,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return SafeArea(
-      child: SingleChildScrollView(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,6 +288,10 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
           ],
         ),
       ),
+      ),
+      const BannerAdWidget(),
+      ],
+    ),
     );
   }
 }

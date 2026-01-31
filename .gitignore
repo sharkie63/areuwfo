@@ -3,7 +3,7 @@
 *.log
 *.pyc
 *.swp
-.DS_Store
+*.DS_Store
 .atom/
 .buildlog/
 .history
@@ -30,11 +30,8 @@ out/
 /ios/.symlinks/
 /ios/Runner/GeneratedPluginRegistrant.h
 /ios/Runner/GeneratedPluginRegistrant.m
-/ios/Runner/Info.plist
-/ios/Runner/Runner.xcscheme
-/ios/Runner/project.xcworkspace
-/ios/Runner.xcworkspace/
-/ios/Runner.xcodeproj/
+
+# Android
 /android/key.properties
 /android/local.properties
 /android/.gradle/
@@ -47,6 +44,10 @@ out/
 .pub-cache/
 .pub/
 
-#Ignore Firebase
-firebase.json
+# Firebase
+.firebase/
+firebase-debug.log
 .firebaserc
+
+# AdMob Secrets
+lib/ad_secrets.dart

@@ -49,13 +49,13 @@ class StatusSummary extends StatelessWidget {
         final isDarkMode = theme.brightness == Brightness.dark;
         
         // Define theme-aware colors
-        final officeIconColor = isDarkMode ? const Color(0xFF238636) : const Color(0xFF10b981);
+        final officeIconColor = isDarkMode ? Colors.white : const Color(0xFF10b981);
         final officeBgColor = isDarkMode ? const Color(0xFF238636) : const Color(0xFFd1fae5);
         
-        final homeIconColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFef4444);
+        final homeIconColor = isDarkMode ? Colors.white : const Color(0xFFef4444);
         final homeBgColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFfee2e2);
         
-        final leaveIconColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFf59e0b);
+        final leaveIconColor = isDarkMode ? Colors.white : const Color(0xFFf59e0b);
         final leaveBgColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFfef3c7);
         
         return Column(

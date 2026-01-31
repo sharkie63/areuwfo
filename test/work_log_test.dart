@@ -1,5 +1,3 @@
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,19 +51,5 @@ void main() {
     });
   });
 
-  group('Background Notification Flow', () {
-    test('updateStatusInBackground should correctly update the status', () async {
-      final yesterday = DateUtils.dateOnly(DateTime.now()).subtract(const Duration(days: 1));
-      await WorkLogStorage.writeWorkLog({yesterday: WorkStatus.home});
 
-      await updateStatusInBackground(WorkStatus.office);
-
-      final storedLog = await WorkLogStorage.readWorkLog();
-      final today = DateUtils.dateOnly(DateTime.now());
-
-      expect(storedLog.length, 2);
-      expect(storedLog[today], WorkStatus.office);
-      expect(storedLog[yesterday], WorkStatus.home);
-    });
-  });
 }
