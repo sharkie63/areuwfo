@@ -58,6 +58,10 @@
 	<string>We use analytics to improve app performance and provide you with a better experience.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>This app helps you track your work attendance by date.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+	</array>
 </dict>
 </plist>
 
