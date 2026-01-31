@@ -8,6 +8,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:myapp/services/ad_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class SettingsPageNew extends StatefulWidget {
   const SettingsPageNew({super.key});
@@ -218,33 +220,18 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                   icon: Icons.privacy_tip_outlined,
                   iconColor: Colors.indigo,
                   title: 'Privacy Policy',
-                  onTap: () {
-                    // TODO: Replace with actual privacy policy URL
-                    // For now, show a dialog explaining data usage
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Privacy Policy'),
-                        content: const SingleChildScrollView(
-                          child: Text(
-                            'AreUWFO Privacy Summary:\n\n'
-                            '• All your work log data is stored locally on your device\n'
-                            '• We use Firebase Analytics to improve app performance\n'
-                            '• We use Firebase Crashlytics to fix bugs\n'
-                            '• No personal data is shared with third parties\n'
-                            '• You can export or delete your data anytime\n\n'
-                            'Full privacy policy: https://github.com/sharkie63/areuwfo/blob/main/PRIVACY.md',
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Close'),
-                          ),
-                        ],
-                      ),
-                    );
+                  onTap: () async {
+                    final url = Uri.parse('https://areuwfo-tracker.web.app/privacy.html');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not launch privacy policy.')),
+                      );
+                    }
                   },
+
                 ),
                 _SettingsTile(
                   icon: Icons.email_outlined,
