@@ -55,7 +55,7 @@
 		</dict>
 	</array>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>We use analytics to improve app performance and provide you with a better experience.</string>
+	<string>This identifier will be used to deliver personalized ads and improve app performance through analytics.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>This app helps you track your work attendance by date.</string>
 	<key>LSApplicationQueriesSchemes</key>
