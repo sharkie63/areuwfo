@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:myapp/services/ad_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
 
 
 class SettingsPageNew extends StatefulWidget {
@@ -21,6 +23,7 @@ class SettingsPageNew extends StatefulWidget {
 class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAliveClientMixin {
   String _version = '';
   String _buildNumber = '';
+  bool _isPrivacyOptionsRequired = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -29,6 +32,24 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
   void initState() {
     super.initState();
     _loadPackageInfo();
+    _checkPrivacyOptionsRequirement();
+  }
+
+  void _checkPrivacyOptionsRequirement() async {
+    final status = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
+    if (mounted) {
+      setState(() {
+        _isPrivacyOptionsRequired = status == PrivacyOptionsRequirementStatus.required;
+      });
+    }
+  }
+
+  void _onPrivacySettingsClicked() {
+    ConsentForm.showPrivacyOptionsForm((FormError? error) {
+      if (error != null) {
+        debugPrint("${error.errorCode}: ${error.message}");
+      }
+    });
   }
 
 
@@ -231,14 +252,13 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                       );
                     }
                   },
-
                 ),
                 _SettingsTile(
+
                   icon: Icons.email_outlined,
                   iconColor: Colors.teal,
                   title: 'Contact Support',
                   onTap: () {
-                    // Platform-specific email
                     final email = Theme.of(context).platform == TargetPlatform.iOS
                         ? 'studio.boredapps@icloud.com'
                         : 'studio.boredapps@gmail.com';
@@ -261,6 +281,14 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                     );
                   },
                 ),
+
+                if (_isPrivacyOptionsRequired)
+                  _SettingsTile(
+                    icon: Icons.cookie_outlined,
+                    iconColor: Colors.orange,
+                    title: 'Privacy & Cookie Settings',
+                    onTap: _onPrivacySettingsClicked,
+                  ),
               ],
             ),
             const SizedBox(height: 24),

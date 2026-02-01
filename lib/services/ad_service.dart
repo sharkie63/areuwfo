@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -24,9 +23,50 @@ class AdService {
 
   // --- Initialization ---
   Future<void> initialize() async {
+    // Handle Consent (GDPR/CPRA)
+    await handleConsent();
+    
+    // Initialize Mobile Ads SDK
     await MobileAds.instance.initialize();
-    loadInterstitialAd(); // Preload
-    loadRewardedAd();     // Preload
+    
+    // Preload ads
+    loadInterstitialAd();
+    loadRewardedAd();
+  }
+
+  /// Handles the consent flow using User Messaging Platform (UMP) SDK.
+  Future<void> handleConsent() async {
+    final completer = Completer<void>();
+    
+    final params = ConsentRequestParameters();
+
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      params,
+      () async {
+        ConsentInformation.instance.isConsentFormAvailable().then((isAvailable) {
+          if (isAvailable) {
+            _showConsentForm(completer);
+          } else {
+            completer.complete();
+          }
+        });
+      },
+      (FormError error) {
+        debugPrint("Consent Error (${error.errorCode}): ${error.message}");
+        completer.complete(); // Proceed anyway
+      },
+    );
+
+    return completer.future;
+  }
+
+  void _showConsentForm(Completer<void> completer) {
+    ConsentForm.loadAndShowConsentFormIfRequired((FormError? error) {
+      if (error != null) {
+        debugPrint("Consent Form Error (${error.errorCode}): ${error.message}");
+      }
+      completer.complete();
+    });
   }
 
   // --- Interstitial Ad ---
