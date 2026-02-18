@@ -65,4 +65,6 @@ class AdHelper {
       }
     }
   }
+
+  static List<String> get testDeviceIds => AdSecrets.testDeviceIds;
 }

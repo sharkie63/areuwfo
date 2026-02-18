@@ -139,7 +139,7 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
   Widget build(BuildContext context) {
     super.build(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
       child: Column(
@@ -169,8 +169,8 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
                         children: [
                           Icon(Icons.flag_outlined, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981)),
                           const SizedBox(width: 8),
-                          const Text('Office Attendance Goal', style: TextStyle(fontWeight: FontWeight.bold)),
-                          const Spacer(),
+                          Flexible(child: Text('Office Attendance Goal', style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                          const SizedBox(width: 8),
                           Text('${(themeProvider.attendanceGoal * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981))),
                         ],
                       ),

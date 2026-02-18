@@ -174,6 +174,9 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Shared base text theme for consistency across light/dark modes
+    final baseTextTheme = GoogleFonts.interTextTheme(ThemeData.light().textTheme);
+
     final ThemeData lightTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -184,10 +187,10 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
         background: const Color(0xFFf8fafc),
         surface: Colors.white,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: const TextStyle(fontWeight: FontWeight.bold),
-        titleLarge: const TextStyle(fontWeight: FontWeight.w600),
-        headlineSmall: const TextStyle(fontWeight: FontWeight.bold),
+      textTheme: baseTextTheme.copyWith(
+        displayLarge: baseTextTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold),
+        titleLarge: baseTextTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        headlineSmall: baseTextTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
       ),
       scaffoldBackgroundColor: const Color(0xFFf8fafc),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -197,6 +200,13 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
       ),
     );
 
+    // Apply light text color to ALL text styles for dark mode
+    const darkTextColor = Color(0xFFC9D1D9);
+    final darkBaseTextTheme = baseTextTheme.apply(
+      bodyColor: darkTextColor,
+      displayColor: darkTextColor,
+    );
+
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -204,15 +214,14 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
         brightness: Brightness.dark,
         background: const Color(0xFF0D1117),
         surface: const Color(0xFF161B22),
-        onSurface: const Color(0xFFC9D1D9),
+        onSurface: darkTextColor,
         primary: const Color(0xFF238636),
         onPrimary: Colors.white,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
-        titleLarge: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFC9D1D9)),
-        headlineSmall: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC9D1D9)),
-        bodyMedium: const TextStyle(color: Color(0xFFC9D1D9)),
+      textTheme: darkBaseTextTheme.copyWith(
+        displayLarge: darkBaseTextTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold),
+        titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        headlineSmall: darkBaseTextTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
       ),
       scaffoldBackgroundColor: const Color(0xFF0D1117),
        bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -221,6 +230,7 @@ class _WorkTrackerAppState extends State<WorkTrackerApp> {
         unselectedItemColor: Colors.grey.shade600,
       ),
     );
+
 
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
@@ -438,16 +448,15 @@ class _CalendarPageState extends State<CalendarPage> with AutomaticKeepAliveClie
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              DateFormat.yMMMM().format(_displayedMonth),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
+        Flexible(
+          child: Text(
+            DateFormat.yMMMM().format(_displayedMonth),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.chevron_left),
@@ -615,7 +624,15 @@ class WeekdayHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: orderedWeekdays.map((day) {
-        return Text(day, style: const TextStyle(fontWeight: FontWeight.bold));
+        return Expanded(
+          child: Center(
+            child: Text(
+              day,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
       }).toList(),
     );
   }

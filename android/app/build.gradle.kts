@@ -35,7 +35,7 @@ android {
         applicationId = "com.areuwfo.tracker"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 2
+        versionCode = 7
         versionName = "1.0.1"
         multiDexEnabled = true
     }

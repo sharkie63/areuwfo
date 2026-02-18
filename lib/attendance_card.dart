@@ -35,8 +35,8 @@ class AttendanceCard extends StatelessWidget {
           child: Row(
             children: [
               _buildProgressIndicator(theme, percentage),
-              const SizedBox(width: 24),
-              _buildLegend(theme, targetMet, goalPercentage),
+              const SizedBox(width: 16),
+              Expanded(child: _buildLegend(theme, targetMet, goalPercentage)),
             ],
           ),
         );
@@ -93,12 +93,11 @@ class AttendanceCard extends StatelessWidget {
     final homeColor = isDarkMode ? const Color(0xFFB94545) : const Color(0xFFfee2e2);
     final leaveColor = isDarkMode ? const Color(0xFFfbbf24) : const Color(0xFFfef3c7);
     
-    return Expanded(
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: targetMet ? const Color(0xFFd1fae5) : const Color(0xFFfee2e2),
               borderRadius: BorderRadius.circular(99),
@@ -109,41 +108,46 @@ class AttendanceCard extends StatelessWidget {
                 Icon(
                   targetMet ? Icons.check_circle : Icons.cancel,
                   color: targetMet ? theme.colorScheme.primary : theme.colorScheme.error,
-                  size: 16,
+                  size: 14,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  targetMet ? 'Target Met' : 'Target Not Met',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: targetMet ? theme.colorScheme.primary : theme.colorScheme.error,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    targetMet ? 'Target Met' : 'Target Not Met',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: targetMet ? theme.colorScheme.primary : theme.colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             'Monthly Goal: ${goalPercentage.toInt()}%',
             style: theme.textTheme.bodySmall,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 12),
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
             children: [
               _buildLegendItem(officeColor, 'Office', theme),
-              const SizedBox(width: 8),
               _buildLegendItem(homeColor, 'Home', theme),
-              const SizedBox(width: 8),
               _buildLegendItem(leaveColor, 'Leave', theme),
             ],
           )
         ],
-      ),
     );
   }
 
   Widget _buildLegendItem(Color color, String label, ThemeData theme) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 10,

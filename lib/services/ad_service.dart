@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '../ad_helper.dart';
-
 
 class AdService {
   static final AdService _instance = AdService._internal();
@@ -15,19 +15,39 @@ class AdService {
   InterstitialAd? _interstitialAd;
   RewardedAd? _rewardedAd;
 
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
   // --- Ad Unit IDs ---
   String get bannerAdUnitId => AdHelper.bannerAdUnitId;
   String get interstitialAdUnitId => AdHelper.interstitialAdUnitId;
   String get rewardedAdUnitId => AdHelper.rewardedAdUnitId;
 
+  /// Logs a key ad event to Firebase Analytics (only important events)
+  void _logAdEvent(String eventName, {Map<String, Object>? params}) {
+    _analytics.logEvent(name: eventName, parameters: params);
+    debugPrint('[AdService] $eventName: $params');
+  }
 
   // --- Initialization ---
   Future<void> initialize() async {
     // Handle Consent (GDPR/CPRA)
     await handleConsent();
     
+    // Configure test devices to avoid AdMob bans
+    final requestConfiguration = RequestConfiguration(
+      testDeviceIds: AdHelper.testDeviceIds,
+    );
+    await MobileAds.instance.updateRequestConfiguration(requestConfiguration);
+    
     // Initialize Mobile Ads SDK
-    await MobileAds.instance.initialize();
+    final initStatus = await MobileAds.instance.initialize();
+
+    // Log adapter status summary (once per app launch)
+    final adapterStatuses = initStatus.adapterStatuses;
+    final readyCount = adapterStatuses.values.where((s) => s.state == AdapterInitializationState.ready).length;
+    _logAdEvent('ad_init', params: {
+      'adapters_ready': readyCount,
+      'adapters_total': adapterStatuses.length,
+    });
     
     // Preload ads
     loadInterstitialAd();
@@ -43,6 +63,11 @@ class AdService {
     ConsentInformation.instance.requestConsentInfoUpdate(
       params,
       () async {
+        final consentStatus = await ConsentInformation.instance.getConsentStatus();
+        _logAdEvent('ad_consent', params: {
+          'status': consentStatus.toString(),
+        });
+
         ConsentInformation.instance.isConsentFormAvailable().then((isAvailable) {
           if (isAvailable) {
             _showConsentForm(completer);
@@ -52,7 +77,11 @@ class AdService {
         });
       },
       (FormError error) {
-        debugPrint("Consent Error (${error.errorCode}): ${error.message}");
+        _logAdEvent('ad_consent', params: {
+          'status': 'error',
+          'error_code': error.errorCode,
+          'error_msg': error.message,
+        });
         completer.complete(); // Proceed anyway
       },
     );
@@ -77,19 +106,28 @@ class AdService {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
+          debugPrint('[AdService] Interstitial loaded');
           _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
-              loadInterstitialAd(); // Reload after dismiss
+              loadInterstitialAd();
             },
             onAdFailedToShowFullScreenContent: (ad, err) {
               ad.dispose();
-              loadInterstitialAd(); // Reload on failure
+              loadInterstitialAd();
             },
           );
         },
         onAdFailedToLoad: (LoadAdError error) {
-          debugPrint('InterstitialAd failed to load: $error');
+          // Only log failures — this is what we need to diagnose
+          _logAdEvent('ad_load_fail', params: {
+            'type': 'interstitial',
+            'code': error.code,
+            'msg': error.message.length > 100 ? error.message.substring(0, 100) : error.message,
+          });
+          Future.delayed(const Duration(seconds: 30), () {
+            loadInterstitialAd();
+          });
         },
       ),
     );
@@ -98,22 +136,20 @@ class AdService {
   DateTime? _lastInterstitialAdTime;
 
   void showInterstitialAd() {
-    // Frequency cap: Check if 5 minutes have passed
     if (_lastInterstitialAdTime != null) {
       final difference = DateTime.now().difference(_lastInterstitialAdTime!);
-      if (difference.inMinutes < 5) {
-        debugPrint('InterstitialAd skipped: Freequency cap (waited ${difference.inMinutes} mins)');
+      if (difference.inMinutes < 2) {
         return;
       }
     }
 
     if (_interstitialAd != null) {
       _interstitialAd!.show();
-      _lastInterstitialAdTime = DateTime.now(); // Update timestamp
-      _interstitialAd = null; // Clear reference
+      _lastInterstitialAdTime = DateTime.now();
+      _interstitialAd = null;
     } else {
-      debugPrint('InterstitialAd not ready yet.');
-      loadInterstitialAd(); // Try loading again
+      debugPrint('[AdService] Interstitial not ready');
+      loadInterstitialAd();
     }
   }
 
@@ -125,10 +161,11 @@ class AdService {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _rewardedAd = ad;
+          debugPrint('[AdService] Rewarded loaded');
           _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
-              loadRewardedAd(); // Reload
+              loadRewardedAd();
             },
             onAdFailedToShowFullScreenContent: (ad, err) {
               ad.dispose();
@@ -137,7 +174,14 @@ class AdService {
           );
         },
         onAdFailedToLoad: (LoadAdError error) {
-          debugPrint('RewardedAd failed to load: $error');
+          _logAdEvent('ad_load_fail', params: {
+            'type': 'rewarded',
+            'code': error.code,
+            'msg': error.message.length > 100 ? error.message.substring(0, 100) : error.message,
+          });
+          Future.delayed(const Duration(seconds: 30), () {
+            loadRewardedAd();
+          });
         },
       ),
     );
@@ -152,11 +196,26 @@ class AdService {
       );
       _rewardedAd = null;
     } else {
-      debugPrint('RewardedAd not ready yet.');
-      loadRewardedAd(); // Try loading again
-      // Optionally handle the case where ad isn't ready (e.g., just proceed)
-      // For now, we just don't show it and let the user click again or proceed.
-      // A better UX might be to show a "Loading Ad..." toast or similar.
+      loadRewardedAd();
+      for (int i = 0; i < 6; i++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (_rewardedAd != null) {
+          _rewardedAd!.show(
+            onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+              onRewardEarned();
+            },
+          );
+          _rewardedAd = null;
+          return;
+        }
+      }
+      // Ad still not available — proceed anyway
+      _logAdEvent('ad_load_fail', params: {
+        'type': 'rewarded',
+        'code': -1,
+        'msg': 'timeout_fallback',
+      });
+      onRewardEarned();
     }
   }
 }
@@ -187,6 +246,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: AdSize.banner,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
+          debugPrint('[AdService] Banner loaded');
           if (mounted) {
             setState(() {
               _isLoaded = true;
@@ -194,8 +254,15 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           }
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('BannerAd failed to load: $error');
+          AdService()._logAdEvent('ad_load_fail', params: {
+            'type': 'banner',
+            'code': error.code,
+            'msg': error.message.length > 100 ? error.message.substring(0, 100) : error.message,
+          });
           ad.dispose();
+          Future.delayed(const Duration(seconds: 30), () {
+            if (mounted) _loadAd();
+          });
         },
       ),
     )..load();
@@ -216,6 +283,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
         child: AdWidget(ad: _bannerAd!),
       );
     }
-    return const SizedBox.shrink(); // Hide if not loaded
+    return const SizedBox.shrink();
   }
 }
