@@ -11,6 +11,7 @@ import 'package:myapp/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:myapp/services/ad_service.dart';
+import 'package:myapp/services/notification_service.dart';
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -59,6 +60,13 @@ class _AppShellState extends State<AppShell> {
 
         // Initialize Ads
         await AdService().initialize();
+
+        // Initialize Notifications (non-critical — don't block app launch)
+        try {
+          await NotificationService().initialize();
+        } catch (e) {
+          developer.log('NotificationService init failed: $e', name: 'com.areuwfo.init');
+        }
 
         // Load the persisted work log data.
         await _workLog.loadLog();
@@ -361,21 +369,30 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) {
-          if (index == 1 && navigationShell.currentIndex != 1) {
-            AdService().showInterstitialAd();
-          }
-          HapticFeedback.selectionClick();
-          navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+    return PopScope(
+      canPop: navigationShell.currentIndex == 0, // Only allow exit from Calendar
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          // User pressed back on a non-Calendar tab → switch to Calendar
+          navigationShell.goBranch(0);
+        }
+      },
+      child: Scaffold(
+        body: navigationShell,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (index) {
+            if (index == 1 && navigationShell.currentIndex != 1) {
+              AdService().showInterstitialAd();
+            }
+            HapticFeedback.selectionClick();
+            navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Calendar'),
+            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          ],
+        ),
       ),
     );
   }

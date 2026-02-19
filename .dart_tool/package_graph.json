@@ -16,6 +16,8 @@
         "firebase_crashlytics",
         "firebase_storage",
         "flutter",
+        "flutter_local_notifications",
+        "flutter_timezone",
         "fluttertoast",
         "go_router",
         "google_fonts",
@@ -27,6 +29,7 @@
         "provider",
         "share_plus",
         "shared_preferences",
+        "timezone",
         "url_launcher"
       ],
       "devDependencies": [
@@ -95,6 +98,28 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "flutter_timezone",
+      "version": "5.0.1",
+      "dependencies": [
+        "equatable",
+        "flutter",
+        "flutter_web_plugins",
+        "meta"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications",
+      "version": "19.5.0",
+      "dependencies": [
+        "clock",
+        "flutter",
+        "flutter_local_notifications_linux",
+        "flutter_local_notifications_platform_interface",
+        "flutter_local_notifications_windows",
+        "timezone"
       ]
     },
     {
@@ -503,6 +528,45 @@
         "stream_channel",
         "string_scanner",
         "term_glyph"
+      ]
+    },
+    {
+      "name": "equatable",
+      "version": "2.0.8",
+      "dependencies": [
+        "collection",
+        "meta"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications_windows",
+      "version": "1.0.3",
+      "dependencies": [
+        "ffi",
+        "flutter",
+        "flutter_local_notifications_platform_interface",
+        "meta",
+        "timezone",
+        "xml"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications_platform_interface",
+      "version": "9.1.0",
+      "dependencies": [
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications_linux",
+      "version": "6.0.0",
+      "dependencies": [
+        "dbus",
+        "ffi",
+        "flutter",
+        "flutter_local_notifications_platform_interface",
+        "path",
+        "xdg_directories"
       ]
     },
     {
@@ -1035,6 +1099,25 @@
       ]
     },
     {
+      "name": "xdg_directories",
+      "version": "0.2.0+3",
+      "dependencies": [
+        "meta",
+        "path",
+        "process"
+      ]
+    },
+    {
+      "name": "dbus",
+      "version": "0.7.12",
+      "dependencies": [
+        "args",
+        "ffi",
+        "meta",
+        "xml"
+      ]
+    },
+    {
       "name": "webview_flutter_platform_interface",
       "version": "2.14.0",
       "dependencies": [
@@ -1047,15 +1130,6 @@
       "name": "platform",
       "version": "3.1.6",
       "dependencies": []
-    },
-    {
-      "name": "xdg_directories",
-      "version": "0.2.0+3",
-      "dependencies": [
-        "meta",
-        "path",
-        "process"
-      ]
     },
     {
       "name": "uuid",
@@ -1114,6 +1188,14 @@
       "name": "fixnum",
       "version": "1.1.1",
       "dependencies": []
+    },
+    {
+      "name": "timezone",
+      "version": "0.10.1",
+      "dependencies": [
+        "http",
+        "path"
+      ]
     }
   ],
   "configVersion": 1

@@ -8,9 +8,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:myapp/services/ad_service.dart';
+import 'package:myapp/services/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class SettingsPageNew extends StatefulWidget {
@@ -24,6 +25,7 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
   String _version = '';
   String _buildNumber = '';
   bool _isPrivacyOptionsRequired = false;
+  bool _isDailyReminderEnabled = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -33,7 +35,50 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
     super.initState();
     _loadPackageInfo();
     _checkPrivacyOptionsRequirement();
+    _loadNotificationPreference();
   }
+
+  Future<void> _loadNotificationPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDailyReminderEnabled = prefs.getBool('daily_reminder_enabled') ?? false;
+    });
+  }
+
+  Future<void> _toggleDailyReminder(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value) {
+      final bool granted = await NotificationService().requestPermissions();
+      if (granted) {
+        await NotificationService().scheduleDailyTenAMNotification();
+        await prefs.setBool('daily_reminder_enabled', true);
+        setState(() {
+          _isDailyReminderEnabled = true;
+        });
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Daily reminder scheduled for 10:00 AM')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification permission denied')),
+          );
+        }
+        setState(() {
+          _isDailyReminderEnabled = false;
+        });
+      }
+    } else {
+      await NotificationService().cancelDailyNotification();
+      await prefs.setBool('daily_reminder_enabled', false);
+      setState(() {
+        _isDailyReminderEnabled = false;
+      });
+    }
+  }
+
 
   void _checkPrivacyOptionsRequirement() async {
     final status = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
@@ -146,167 +191,179 @@ class _SettingsPageNewState extends State<SettingsPageNew> with AutomaticKeepAli
         children: [
           Expanded(
             child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-             Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 24.0, bottom: 16.0),
-              child: Text(
-                'Settings',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const _SettingsHeader(title: 'GOAL'),
-            _SettingsCard(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.flag_outlined, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981)),
-                          const SizedBox(width: 8),
-                          Flexible(child: Text('Office Attendance Goal', style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                          const SizedBox(width: 8),
-                          Text('${(themeProvider.attendanceGoal * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981))),
-                        ],
-                      ),
-                      Slider(
-                        value: themeProvider.attendanceGoal,
-                        min: 0,
-                        max: 1,
-                        divisions: 100,
-                        activeColor: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981),
-                        inactiveColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
-                        onChanged: (value) {
-                          themeProvider.setAttendanceGoal(value);
-                        },
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('0%', style: TextStyle(color: Colors.grey)),
-                          Text('100%', style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-            const _SettingsHeader(title: 'DATA'),
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: Icons.ios_share,
-                  iconColor: Colors.blue,
-                  title: 'Export to CSV',
-                  onTap: _exportToCsv,
-                ),
-                _SettingsTile(
-                  icon: Icons.delete_outline,
-                  iconColor: Colors.red,
-                  title: 'Clear Work Log',
-                  onTap: _showClearLogDialog,
-                ),
-              ],
-            ),
-            const _SettingsHeader(title: 'PREFERENCES'),
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: Icons.dark_mode_outlined,
-                  iconColor: Colors.purple,
-                  title: 'Dark Mode',
-                  trailing: Switch(
-                    value: isDarkMode,
-                    onChanged: (value) {
-                      themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
-                    },
-                    activeColor: Colors.white,
-                    activeTrackColor: Colors.purple,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
-                  ),
-                ),
-              ],
-            ),
-            const _SettingsHeader(title: 'ABOUT'),
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: Icons.privacy_tip_outlined,
-                  iconColor: Colors.indigo,
-                  title: 'Privacy Policy',
-                  onTap: () async {
-                    final url = Uri.parse('https://areuwfo-tracker.web.app/privacy.html');
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not launch privacy policy.')),
-                      );
-                    }
-                  },
-                ),
-                _SettingsTile(
-
-                  icon: Icons.email_outlined,
-                  iconColor: Colors.teal,
-                  title: 'Contact Support',
-                  onTap: () {
-                    final email = Theme.of(context).platform == TargetPlatform.iOS
-                        ? 'studio.boredapps@icloud.com'
-                        : 'studio.boredapps@gmail.com';
-                    
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Contact Support'),
-                        content: Text(
-                          'For support or feedback:\n\n'
-                          'Email: $email',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Close'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                if (_isPrivacyOptionsRequired)
-                  _SettingsTile(
-                    icon: Icons.cookie_outlined,
-                    iconColor: Colors.orange,
-                    title: 'Privacy & Cookie Settings',
-                    onTap: _onPrivacySettingsClicked,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            if (_version.isNotEmpty)
-              Center(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+               Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 24.0, bottom: 16.0),
                 child: Text(
-                  'Version $_version+$_buildNumber',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  'Settings',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
-            const SizedBox(height: 24),
-          ],
+              const _SettingsHeader(title: 'GOAL'),
+              _SettingsCard(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.flag_outlined, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981)),
+                            const SizedBox(width: 8),
+                            Flexible(child: Text('Office Attendance Goal', style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                            const SizedBox(width: 8),
+                            Text('${(themeProvider.attendanceGoal * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981))),
+                          ],
+                        ),
+                        Slider(
+                          value: themeProvider.attendanceGoal,
+                          min: 0,
+                          max: 1,
+                          divisions: 100,
+                          activeColor: isDarkMode ? Colors.greenAccent : const Color(0xFF10b981),
+                          inactiveColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                          onChanged: (value) {
+                            themeProvider.setAttendanceGoal(value);
+                          },
+                        ),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('0%', style: TextStyle(color: Colors.grey)),
+                            Text('100%', style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+              const _SettingsHeader(title: 'DATA'),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.ios_share,
+                    iconColor: Colors.blue,
+                    title: 'Export to CSV',
+                    onTap: _exportToCsv,
+                  ),
+                  _SettingsTile(
+                    icon: Icons.delete_outline,
+                    iconColor: Colors.red,
+                    title: 'Clear Work Log',
+                    onTap: _showClearLogDialog,
+                  ),
+                ],
+              ),
+              const _SettingsHeader(title: 'PREFERENCES'),
+               _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.notifications_none_outlined,
+                    iconColor: Colors.orange,
+                    title: 'Daily Reminder (10 AM)',
+                    trailing: Switch(
+                      value: _isDailyReminderEnabled,
+                      onChanged: _toggleDailyReminder,
+                      activeColor: Colors.white,
+                      activeTrackColor: Colors.orange,
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                    ),
+                  ),
+                  _SettingsTile(
+                    icon: Icons.dark_mode_outlined,
+                    iconColor: Colors.purple,
+                    title: 'Dark Mode',
+                    trailing: Switch(
+                      value: isDarkMode,
+                      onChanged: (value) {
+                        themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+                      },
+                      activeColor: Colors.white,
+                      activeTrackColor: Colors.purple,
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                    ),
+                  ),
+                ],
+              ),
+              const _SettingsHeader(title: 'ABOUT'),
+              _SettingsCard(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.privacy_tip_outlined,
+                    iconColor: Colors.indigo,
+                    title: 'Privacy Policy',
+                    onTap: () async {
+                      final url = Uri.parse('https://areuwfo-tracker.web.app/privacy.html');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      } else {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not launch privacy policy.')),
+                        );
+                      }
+                    },
+                  ),
+                  _SettingsTile(
+                    icon: Icons.email_outlined,
+                    iconColor: Colors.teal,
+                    title: 'Contact Support',
+                    onTap: () {
+                      final email = Theme.of(context).platform == TargetPlatform.iOS
+                          ? 'studio.boredapps@icloud.com'
+                          : 'studio.boredapps@gmail.com';
+                      
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Contact Support'),
+                          content: Text(
+                            'For support or feedback:\n\n'
+                            'Email: $email',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  if (_isPrivacyOptionsRequired)
+                    _SettingsTile(
+                      icon: Icons.cookie_outlined,
+                      iconColor: Colors.orange,
+                      title: 'Privacy & Cookie Settings',
+                      onTap: _onPrivacySettingsClicked,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              if (_version.isNotEmpty)
+                Center(
+                  child: Text(
+                    'Version $_version+$_buildNumber',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
+        ),
+        const BannerAdWidget(),
+        ],
       ),
-      ),
-      const BannerAdWidget(),
-      ],
-    ),
     );
   }
 }
